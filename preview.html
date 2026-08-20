@@ -175,6 +175,39 @@
     60%  { transform: scale(1.15); background: #6fd6c9; color: #241F3D; }
     100% { transform: scale(1); }
   }
+  /* ---- "now carry it down to a box" ----
+     A child who has just filled a nest has no way of knowing the note is meant to travel
+     down to the staff. Two cues, no words, because half of them cannot read yet: a
+     see-through copy of their own character glides down the exact path, and the box it is
+     headed for breathes. Both stop for good the moment one note gets placed. */
+  .drop-ghost {
+    position: fixed; left: 0; top: 0; z-index: 30; opacity: 0;
+    border-radius: 50%; background: var(--panel);
+    border: 3px solid var(--ring, var(--accent-teal));
+    box-shadow: 0 0 0 4px color-mix(in srgb, #6fd6c9 32%, transparent), var(--shadow);
+    pointer-events: none;
+  }
+  .drop-ghost .road-note-avatar {
+    width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .drop-ghost img { width: 100%; height: 118%; object-fit: cover; object-position: center top; }
+  .measure-zone.hint-target {
+    outline: 3px dashed #6fd6c9; outline-offset: -5px; border-radius: var(--radius-sm);
+    animation: hintBreathe 1.7s ease-in-out infinite;
+  }
+  @keyframes hintBreathe {
+    0%, 100% { outline-color: color-mix(in srgb, #6fd6c9 35%, transparent); background: color-mix(in srgb, #6fd6c9 6%, transparent); }
+    50%      { outline-color: #6fd6c9; background: color-mix(in srgb, #6fd6c9 17%, transparent); }
+  }
+  .drop-arrow { display: none; justify-content: center; margin: 4px 0 -8px; }
+  .drop-arrow.on { display: flex; }
+  .drop-arrow svg { width: 30px; height: 30px; color: #6fd6c9; animation: arrowBob 1.25s ease-in-out infinite; }
+  @keyframes arrowBob { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(8px); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .measure-zone.hint-target, .drop-arrow svg { animation: none; }
+    .measure-zone.hint-target { background: color-mix(in srgb, #6fd6c9 14%, transparent); }
+  }
   .road-note.just-landed { animation: notePop .5s ease; }
   @keyframes notePop { 0% { transform: scale(.45); } 62% { transform: scale(1.22); } 100% { transform: scale(1); } }
   /* 4 dots per measure showing how much of it is still free, reusing the same LED-dot language
@@ -306,6 +339,11 @@
     <h3 class="workbench-title">גררו דמות לכאן כדי ליצור תו</h3>
     <div class="workbench-arrow" aria-hidden="true">↓</div>
     <div class="workbench" id="workbench"></div>
+    <div class="drop-arrow" id="dropArrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4v13" /><path d="M6 12l6 6 6-6" />
+      </svg>
+    </div>
 
     <div class="road-wrap" id="roadWrap">
       <div class="road" id="road">
@@ -372,6 +410,7 @@
   const els = {
     castStrip: document.getElementById("castStrip"),
     workbench: document.getElementById("workbench"),
+    dropArrow: document.getElementById("dropArrow"),
     road: document.getElementById("road"),
     roadWrap: document.getElementById("roadWrap"),
     roadStaff: document.getElementById("roadStaff"),
@@ -626,6 +665,7 @@
   // Scroll the measure a note just landed in into view and flash it. scrollToMeasure is a
   // function declaration further down, so it is already hoisted by the time this runs.
   function revealLanding(mIdx, item) {
+    retireHint(); // they worked it out - stop teaching it
     scrollToMeasure(mIdx);
     const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + mIdx + '"]');
     const num = els.roadInner.querySelector('.measure-num[data-measure-index="' + mIdx + '"]');
@@ -725,6 +765,76 @@
     dotEls[dur] = dots;
     wireSocketDrag(socket, dur);
   });
+  // ---------- the drop hint ----------
+  let hasPlacedANote = false;
+  let hintTimers = [];
+  let lastFilledCount = 0;
+
+  function hintIsWanted() {
+    return !hasPlacedANote && !playing && [1, 2, 4].some(d => workbench[d]);
+  }
+  // aim at the measure the note would really land in, so the hint never points at a full box
+  function hintTargetMeasure() {
+    const dur = [4, 2, 1].find(d => workbench[d]) || 1;
+    return findMeasureFrom(0, dur);
+  }
+  function applyHintTarget() {
+    els.roadInner.querySelectorAll(".measure-zone.hint-target").forEach(z => z.classList.remove("hint-target"));
+    const wanted = hintIsWanted();
+    if (els.dropArrow) els.dropArrow.classList.toggle("on", wanted);
+    if (!wanted) return;
+    const z = els.roadInner.querySelector('.measure-zone[data-measure-index="' + hintTargetMeasure() + '"]');
+    if (z) z.classList.add("hint-target");
+  }
+  function clearHint() {
+    hintTimers.forEach(t => clearTimeout(t));
+    hintTimers = [];
+    document.querySelectorAll(".drop-ghost").forEach(g => g.remove());
+  }
+  function flyGhostOnce() {
+    if (!hintIsWanted() || ghostEl) return; // never compete with a real finger already dragging
+    const dur = [4, 2, 1].find(d => workbench[d]);
+    const socket = socketEls[dur];
+    const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + hintTargetMeasure() + '"]');
+    if (!socket || !zone) return;
+    const from = socket.getBoundingClientRect();
+    const to = zone.getBoundingClientRect();
+    if (!from.width || !to.width) return;
+    const size = noteSizeFor(dur);
+    const ghost = document.createElement("div");
+    ghost.className = "drop-ghost";
+    ghost.style.width = size + "px";
+    ghost.style.height = size + "px";
+    ghost.style.setProperty("--ring", ringVar(workbench[dur]));
+    ghost.innerHTML = '<span class="road-note-avatar"><img src="' + IMG_SRC[workbench[dur]] + '" alt=""></span>';
+    document.body.appendChild(ghost);
+    const x0 = from.left + from.width / 2 - size / 2, y0 = from.top + from.height / 2 - size / 2;
+    const x1 = to.left + Math.min(to.width, 120) / 2 - size / 2, y1 = to.top + to.height / 2 - size / 2;
+    const at = (x, y, sc) => "translate(" + x + "px, " + y + "px) scale(" + sc + ")";
+    if (typeof ghost.animate !== "function") { ghost.remove(); return; }
+    const anim = ghost.animate([
+      { transform: at(x0, y0, 1), opacity: 0 },
+      { transform: at(x0, y0, 1), opacity: 0.9, offset: 0.14 },
+      { transform: at(x1, y1, 0.95), opacity: 0.9, offset: 0.76 },
+      { transform: at(x1, y1, 0.66), opacity: 0 }
+    ], { duration: 1550, easing: "ease-in-out" });
+    anim.onfinish = () => ghost.remove();
+    anim.oncancel = () => ghost.remove();
+  }
+  // three passes is enough to read as "do this"; more would nag a child who already got it
+  function runHintBurst() {
+    clearHint();
+    if (!hintIsWanted()) return;
+    for (let k = 0; k < 3; k++) {
+      hintTimers.push(setTimeout(flyGhostOnce, 250 + k * 2050));
+    }
+  }
+  function retireHint() {
+    hasPlacedANote = true;
+    clearHint();
+    applyHintTarget();
+  }
+
   function renderSockets() {
     [1, 2, 4].forEach(dur => {
       const socket = socketEls[dur];
@@ -745,6 +855,11 @@
         socket.innerHTML = "";
       }
     });
+    // a nest that just lit up is exactly the moment the child needs to be told where next
+    const filled = [1, 2, 4].filter(d => workbench[d]).length;
+    if (filled > lastFilledCount) runHintBurst();
+    lastFilledCount = filled;
+    applyHintTarget();
   }
   renderSockets();
 
@@ -840,6 +955,8 @@
     noteEls.forEach((note, item) => {
       if (!seen.has(item)) { note.remove(); noteEls.delete(item); }
     });
+
+    applyHintTarget(); // the zones were just rebuilt, so the breathing box has to be re-marked
   }
 
   // ---------- step 1: drag a character from the cast strip onto a "nest" to create a note ----------
@@ -1175,14 +1292,17 @@
   // whole measure still and only move at the bar line - the move itself teaches where a
   // measure ends. If the whole piece already fits on screen, never scroll at all.
   let lastScrolledMeasure = -1;
-  function scrollToMeasure(mIdx) {
+  function scrollToMeasure(mIdx, instant) {
     if (!els.roadWrap) return;
     const wrapW = els.roadWrap.clientWidth;
     if (els.road.offsetWidth <= wrapW + 2) return;
     const fitsFromStart = wrapW >= LEFT_GUTTER + MEASURE_W;
     const left = (mIdx === 0 && fitsFromStart) ? 0 : Math.max(0, measureXStart(mIdx) - 12);
-    if (typeof els.roadWrap.scrollTo === "function") els.roadWrap.scrollTo({ left: left, behavior: "smooth" });
-    else els.roadWrap.scrollLeft = left;
+    if (typeof els.roadWrap.scrollTo === "function") {
+      els.roadWrap.scrollTo({ left: left, behavior: instant ? "auto" : "smooth" });
+    } else {
+      els.roadWrap.scrollLeft = left;
+    }
   }
 
   function stopPlayback() {
@@ -1203,9 +1323,12 @@
     if (!seq.length || playing) return;
     playing = true;
     lastScrolledMeasure = -1;
+    // The last drop left a smooth scroll animating towards its measure. Assigning scrollLeft
+    // does not reliably abort that on iOS, so playback used to begin with the view parked on
+    // the last measure while measure 1 was the one sounding. An "auto" scrollTo does abort it.
     if (els.roadWrap) {
-      els.roadWrap.scrollLeft = 0;
-      requestAnimationFrame(() => { els.roadWrap.scrollLeft = 0; });
+      if (typeof els.roadWrap.scrollTo === "function") els.roadWrap.scrollTo({ left: 0, behavior: "auto" });
+      else els.roadWrap.scrollLeft = 0;
     }
     els.btnPlay.disabled = true;
     els.playhead.style.opacity = "1";
@@ -1230,7 +1353,7 @@
       if (numNow) numNow.classList.add("now");
       if (entry.mIdx !== lastScrolledMeasure) {
         lastScrolledMeasure = entry.mIdx;
-        scrollToMeasure(entry.mIdx);
+        scrollToMeasure(entry.mIdx, i === 0); // the first jump is instant, so nothing outruns it
       }
       const waitMs = entry.item.dur * beatMs;
       if (entry.item.type === "note") {
