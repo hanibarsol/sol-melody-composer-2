@@ -546,13 +546,34 @@
   function unlockAudio() {
     try {
       const ac = ensureAudioCtx();
+      if (ac.state !== "running") ac.resume().catch(() => {});
+      // Safari wants a buffer actually played from inside the gesture before it will let the
+      // context run - resume() on its own is not enough to convince it.
+      const src = ac.createBufferSource();
+      src.buffer = ac.createBuffer(1, 1, 22050);
+      src.connect(ac.destination);
+      src.start(0);
       const osc = ac.createOscillator(), gain = ac.createGain();
       gain.gain.value = 0.0001;
       osc.connect(gain).connect(ac.destination);
       osc.start(); osc.stop(ac.currentTime + 0.05);
     } catch (e) {}
   }
-  document.addEventListener("pointerdown", unlockAudio, { once: true });
+
+  // Listening on pointerdown alone was the whole first-note bug. Safari on iOS decides for
+  // itself which events count as a real gesture for audio, and dragging - which is all this
+  // lesson does until the play button is pressed - did not count. That is exactly why sound
+  // only ever arrived after the first press of play, and worked from then on. So try every
+  // event that can carry a gesture, keep trying until the context actually reports itself
+  // running, and only then stop listening.
+  const PRIME_EVENTS = ["touchstart", "touchend", "pointerdown", "pointerup", "mousedown", "click", "keydown"];
+  function primeAudio() {
+    unlockAudio();
+    if (audioCtx && audioCtx.state === "running") {
+      PRIME_EVENTS.forEach(evt => document.removeEventListener(evt, primeAudio, true));
+    }
+  }
+  PRIME_EVENTS.forEach(evt => document.addEventListener(evt, primeAudio, { capture: true, passive: true }));
 
   // The audio context can be asked to wake and simply not be awake yet, and on iOS the
   // promise resume() hands back is not something to build on - it can sit pending while the
@@ -566,7 +587,8 @@
     let tries = 0;
     const iv = setInterval(() => {
       if (ac.state === "running") { clearInterval(iv); fn(); return; }
-      if (++tries > 48) clearInterval(iv); // ~1.2s, then give up rather than leak a timer
+      try { if (audioCtx && audioCtx.state !== "running") audioCtx.resume().catch(() => {}); } catch (e) {}
+      if (++tries > 80) clearInterval(iv); // ~2s, then give up rather than leak a timer
     }, 25);
   }
 
