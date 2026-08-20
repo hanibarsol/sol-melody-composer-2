@@ -488,8 +488,19 @@
   }
   let audioCtx = null;
   function ensureAudioCtx() {
+    // "interrupted" is a Safari-only state and it is not sleep: the context has been taken
+    // away from the page by another app or a call, and resume() will not reliably get it
+    // back. A fresh context will. The cached limiter, reverb and volume gain belong to the
+    // dead one and cannot be connected across contexts, so they have to go with it.
+    if (audioCtx && audioCtx.state === "interrupted") {
+      try { audioCtx.close(); } catch (e) {}
+      audioCtx = null;
+      masterLimiter = null;
+      masterVolumeGain = null;
+      reverbNode = null;
+    }
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (audioCtx.state !== "running") { try { audioCtx.resume(); } catch (e) {} }
     return audioCtx;
   }
 
@@ -581,13 +592,13 @@
   // that wants to make a sound goes through here, and nothing is ever scheduled onto a
   // context that is still asleep - which is what silently ate the very first note of a
   // session, the one a child plays before any other sound has woken anything up.
-  function whenAudioReady(ac, fn) {
-    if (ac.state === "running") { fn(); return; }
-    try { ac.resume().catch(() => {}); } catch (e) {}
+  function whenAudioReady(fn) {
+    // Deliberately no held reference to a context: ensureAudioCtx may hand back a brand new
+    // one if the old was taken away mid-wait, and waiting on the dead one would wait forever.
+    if (ensureAudioCtx().state === "running") { fn(); return; }
     let tries = 0;
     const iv = setInterval(() => {
-      if (ac.state === "running") { clearInterval(iv); fn(); return; }
-      try { if (audioCtx && audioCtx.state !== "running") audioCtx.resume().catch(() => {}); } catch (e) {}
+      if (ensureAudioCtx().state === "running") { clearInterval(iv); fn(); return; }
       if (++tries > 80) clearInterval(iv); // ~2s, then give up rather than leak a timer
     }, 25);
   }
@@ -595,7 +606,7 @@
   function playPianoNote(freq, velocity, sustainSec) {
     velocity = velocity || 1;
     const ac = ensureAudioCtx();
-    if (ac.state !== "running") { whenAudioReady(ac, () => playPianoNote(freq, velocity, sustainSec)); return; }
+    if (ac.state !== "running") { whenAudioReady(() => playPianoNote(freq, velocity, sustainSec)); return; }
     try {
       const t0 = ac.currentTime;
       const master = ac.createGain();
@@ -648,7 +659,7 @@
   function playSustainedNote(freq, velocity, totalSec) {
     velocity = velocity || 1;
     const ac = ensureAudioCtx();
-    if (ac.state !== "running") { whenAudioReady(ac, () => playSustainedNote(freq, velocity, totalSec)); return; }
+    if (ac.state !== "running") { whenAudioReady(() => playSustainedNote(freq, velocity, totalSec)); return; }
     try {
       const t0 = ac.currentTime;
       const master = ac.createGain();
@@ -1269,7 +1280,23 @@
     const cleaned = raw.map(m => (Array.isArray(m) ? m : []).filter(it =>
       it && it.type === "note" && [1, 2, 4].includes(it.dur) && NOTES[it.key]
     ).map(it => ({ type: "note", key: it.key, dur: it.dur })));
-    return cleaned.length ? cleaned : [[], []];
+    return cleaned.length ? repackMeasures(cleaned) : [[], []];
+  }
+
+  // A melody coming back from a slot has to obey the same rules as one built by hand - four
+  // beats to a box, boxes in order, no holes - and the stored shape guaranteed none of them.
+  // A slot written before those rules existed loaded straight back in, which is how a box
+  // ended up holding eight notes. Take the notes in order and lay them out again.
+  function repackMeasures(cleaned) {
+    const flat = [];
+    cleaned.forEach(m => m.forEach(it => flat.push(it)));
+    const out = [[]];
+    flat.forEach(it => {
+      let box = out[out.length - 1];
+      if (remaining(box) < it.dur) { out.push([]); box = out[out.length - 1]; }
+      box.push(it);
+    });
+    return out;
   }
 
   function updateTempoLabel() { els.tempoVal.textContent = els.tempo.value; }
@@ -1320,6 +1347,7 @@
             writeSlot(i, { measures, bpm: Number(els.tempo.value) });
           } else {
             measures = sanitizeMeasures(data.measures || []);
+            tidyMeasures();
             if (data.bpm) { els.tempo.value = data.bpm; updateTempoLabel(); }
             stopPlayback();
             renderRoad();
