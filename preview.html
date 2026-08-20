@@ -249,6 +249,14 @@
      visual weight on "play" - pressed constantly - as on "load a melody". Now they are
      ranked: one big primary action, then even pairs on a real grid, then the settings last
      and quiet. Nothing inside the game shrank; this is all chrome. */
+  /* preview-only readout, shown by adding ?debug=1 to the address. Never appears otherwise,
+     and comes out entirely before this reaches the lesson. */
+  .diag {
+    margin-top: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
+    background: #241F3D; color: #7CF3E2; font-size: 12px; line-height: 1.55;
+    font-family: ui-monospace, Menlo, Consolas, monospace; direction: ltr; text-align: left;
+    white-space: pre; overflow-x: auto;
+  }
   .controls { display: grid; gap: 10px; margin-top: 16px; }
   .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn {
@@ -374,6 +382,7 @@
       </div>
     </div>
 
+    <div class="diag" id="diag" hidden></div>
     <div class="controls">
       <button class="btn btn-play" id="btnPlay" aria-label="נגן">
         <svg class="ico ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>
@@ -545,15 +554,26 @@
   }
   document.addEventListener("pointerdown", unlockAudio, { once: true });
 
+  // The audio context can be asked to wake and simply not be awake yet, and on iOS the
+  // promise resume() hands back is not something to build on - it can sit pending while the
+  // context is already running, or never settle at all. So watch the state itself. Anything
+  // that wants to make a sound goes through here, and nothing is ever scheduled onto a
+  // context that is still asleep - which is what silently ate the very first note of a
+  // session, the one a child plays before any other sound has woken anything up.
+  function whenAudioReady(ac, fn) {
+    if (ac.state === "running") { fn(); return; }
+    try { ac.resume().catch(() => {}); } catch (e) {}
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (ac.state === "running") { clearInterval(iv); fn(); return; }
+      if (++tries > 48) clearInterval(iv); // ~1.2s, then give up rather than leak a timer
+    }, 25);
+  }
+
   function playPianoNote(freq, velocity, sustainSec) {
     velocity = velocity || 1;
     const ac = ensureAudioCtx();
-    // Waiting for resume() before scheduling looks safe and is not: on iOS the promise can
-    // stay pending forever when the context was interrupted, and the note is then thrown away
-    // in total silence while every visual cue still runs - which is exactly how this looked
-    // on a phone, dots lighting up over nothing. Ask for the resume, then schedule anyway; a
-    // note queued on a context that is still waking gets played when it wakes.
-    if (ac.state !== "running") ac.resume().catch(() => {});
+    if (ac.state !== "running") { whenAudioReady(ac, () => playPianoNote(freq, velocity, sustainSec)); return; }
     try {
       const t0 = ac.currentTime;
       const master = ac.createGain();
@@ -606,7 +626,7 @@
   function playSustainedNote(freq, velocity, totalSec) {
     velocity = velocity || 1;
     const ac = ensureAudioCtx();
-    if (ac.state !== "running") ac.resume().catch(() => {}); // see playPianoNote: never bail out
+    if (ac.state !== "running") { whenAudioReady(ac, () => playSustainedNote(freq, velocity, totalSec)); return; }
     try {
       const t0 = ac.currentTime;
       const master = ac.createGain();
@@ -716,7 +736,9 @@
   // function declaration further down, so it is already hoisted by the time this runs.
   function revealLanding(mIdx, item) {
     retireHint(); // they worked it out - stop teaching it
-    scrollToMeasure(mIdx);
+    // instant, not smooth: a smooth scroll from a drop keeps unwinding for a few hundred
+    // milliseconds and drags the view back off wherever playback just put it
+    scrollToMeasure(mIdx, true);
     const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + mIdx + '"]');
     const num = els.roadInner.querySelector('.measure-num[data-measure-index="' + mIdx + '"]');
     const note = item ? noteEls.get(item) : null;
@@ -1058,6 +1080,7 @@
     let dragging = false, startX = 0, startY = 0;
     chipEl.addEventListener("pointerdown", (e) => {
       if (playing) return;
+      unlockAudio(); // a whole drag of head start for the audio context to wake up
       if (activeChipDrag) activeChipDrag();
       startX = e.clientX; startY = e.clientY; dragging = false;
       chipEl.setPointerCapture(e.pointerId);
@@ -1125,6 +1148,7 @@
     let dragging = false, startX = 0, startY = 0;
     socketEl.addEventListener("pointerdown", (e) => {
       if (playing || !workbench[dur]) return;
+      unlockAudio();
       if (activeSocketDrag) activeSocketDrag();
       const key = workbench[dur];
       startX = e.clientX; startY = e.clientY; dragging = false;
@@ -1363,7 +1387,7 @@
     };
     set();
     requestAnimationFrame(set);
-    setTimeout(set, 80);
+    [40, 90, 160, 260, 400].forEach(ms => setTimeout(set, ms));
   }
   function scrollToMeasure(mIdx, instant) {
     if (!els.roadWrap) return;
@@ -1452,6 +1476,21 @@
   }
 
   els.btnPlay.addEventListener("click", () => { if (playing) stopPlayback(); else startPlayback(); });
+
+  // ---------- preview-only diagnostics ----------
+  const DIAG = /[?&]debug=1/.test(location.search);
+  const diagEl = document.getElementById("diag");
+  function diag() {
+    if (!DIAG || !diagEl) return;
+    const w = els.roadWrap, seq = flattenSequence();
+    const first = seq.length ? seq[0].mIdx : -1;
+    diagEl.textContent =
+      "scrollLeft " + Math.round(w.scrollLeft) + "   wrap " + w.clientWidth + "   road " + els.road.offsetWidth + "\n" +
+      "boxes " + measures.map(m => m.length).join(",") + "   first note in box " + (first + 1) + "\n" +
+      "gutter " + LEFT_GUTTER + "   box width " + MEASURE_W + "   playing " + playing + "\n" +
+      "audio " + (audioCtx ? audioCtx.state : "not created") + "   scrolled-to " + lastScrolledMeasure;
+  }
+  if (DIAG && diagEl) { diagEl.hidden = false; setInterval(diag, 250); }
 
   updateTempoLabel();
   renderStaffLines();
