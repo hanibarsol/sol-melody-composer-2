@@ -644,7 +644,21 @@
     return idx;
   }
 
-  function ensureTrailingEmptyMeasure() {
+  // An empty box in front of the music is not a rest here - it is a hole a child made by
+  // dropping their first note slightly to the right, and it made playback appear to begin in
+  // measure 2 with nothing to hear before it. Boxes fill in order: no empty one is allowed to
+  // sit before a box that has music in it.
+  function dropGapsBeforeMusic() {
+    let lastUsed = -1;
+    for (let i = 0; i < measures.length; i++) if (measures[i].length) lastUsed = i;
+    if (lastUsed < 1) return;
+    for (let i = lastUsed - 1; i >= 0; i--) {
+      if (!measures[i].length) measures.splice(i, 1);
+    }
+  }
+
+  function tidyMeasures() {
+    dropGapsBeforeMusic();
     while (measures.length >= 2 && isEmptyMeasure(measures[measures.length - 1]) && isEmptyMeasure(measures[measures.length - 2])) {
       measures.pop();
     }
@@ -683,26 +697,27 @@
   function appendItem(item) {
     const idx = findMeasureFrom(0, item.dur);
     measures[idx].push(item);
-    ensureTrailingEmptyMeasure();
+    tidyMeasures();
     renderRoad();
     revealLanding(idx, item);
   }
   function insertNear(targetIdx, item) {
     const idx = findMeasureFrom(targetIdx, item.dur);
     measures[idx].push(item);
-    ensureTrailingEmptyMeasure();
+    tidyMeasures();
     renderRoad();
-    revealLanding(idx, item);
+    const loc = locateItem(item); // collapsing a gap can have moved it a box to the left
+    revealLanding(loc ? loc.mIdx : idx, item);
     return idx;
   }
   function removeItem(mIdx, iIdx) {
     measures[mIdx].splice(iIdx, 1);
-    ensureTrailingEmptyMeasure();
+    tidyMeasures();
     renderRoad();
   }
   function undo() {
     for (let i = measures.length - 1; i >= 0; i--) {
-      if (measures[i].length) { measures[i].pop(); ensureTrailingEmptyMeasure(); renderRoad(); return; }
+      if (measures[i].length) { measures[i].pop(); tidyMeasures(); renderRoad(); return; }
     }
   }
   function clearAll() { measures = [[], []]; renderRoad(); }
@@ -776,7 +791,12 @@
   // aim at the measure the note would really land in, so the hint never points at a full box
   function hintTargetMeasure() {
     const dur = [4, 2, 1].find(d => workbench[d]) || 1;
-    return findMeasureFrom(0, dur);
+    // deliberately not findMeasureFrom: that one appends a fresh measure when everything is
+    // full, and merely pointing at a box should never grow the piece
+    for (let i = 0; i < measures.length; i++) {
+      if (remaining(measures[i]) >= dur) return i;
+    }
+    return measures.length - 1;
   }
   function applyHintTarget() {
     els.roadInner.querySelectorAll(".measure-zone.hint-target").forEach(z => z.classList.remove("hint-target"));
@@ -891,6 +911,10 @@
     }
 
     const seen = new Set();
+    // playback looks its notes up by data-seq. Nothing ever wrote that attribute, so the
+    // lookup always came back empty and no note has ever lit up while it sounded. This walks
+    // the measures in the same order flattenSequence does, so the numbers line up.
+    let seq = 0;
     measures.forEach((m, mIdx) => {
       const zone = document.createElement("div");
       zone.className = "measure-zone" + (mIdx % 2 === 1 ? " alt" : "");
@@ -942,6 +966,7 @@
           noteEls.set(item, note);
         }
         note.className = "road-note" + (NOTES[item.key].step <= -2 ? " ledger" : "");
+        note.dataset.seq = seq++;
         note.style.left = cx + "px";
         note.style.top = y + "px";
         note.style.width = size + "px";
@@ -1033,8 +1058,10 @@
           if (socket) {
             const dur = Number(socket.dataset.dur);
             workbench[dur] = key;
-            renderSockets();
+            // sound first: it used to sit behind renderSockets, so anything that threw while
+            // drawing the nests swallowed the note the child was waiting to hear
             playBeatCount(key, dur);
+            renderSockets();
           } else if (els.road.contains(el)) {
             // dropped straight on the staff, skipping the "choose a length" nest step —
             // give a clear "not yet" cue instead of silently doing nothing
