@@ -113,6 +113,13 @@
   .bounce-hint { animation: chipBounce .4s ease; }
   @keyframes chipBounce { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-8px); } 55% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
   .road-wrap { direction: ltr; overflow-x: auto; overflow-y: hidden; border-radius: var(--radius-md); margin-top: 16px; }
+  /* PHONE: the staff breaks out of the app + panel padding so the child gets ~98px more
+     staff instead of white margin. The page padding itself stays put (the home button still
+     owns its corner) - only this one strip reaches wider, and it sits far below the button. */
+  @media (max-width: 640px) {
+    .road-wrap { margin-left: -70px; margin-right: -28px; }
+    .road { min-width: 0; }
+  }
   .road {
     direction: ltr; position: relative; min-width: 640px; height: 360px;
     background: var(--paper-2);
@@ -123,9 +130,7 @@
   .road-staff { position: absolute; inset: 14px 0; z-index: 0; pointer-events: none; }
   .road-inner { position: absolute; inset: 14px 0; z-index: 1; }
   .staff-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--staff-line); }
-  .bar-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--bar-line); }
-  .clef-zone { position: absolute; top: 0; bottom: 0; left: 0; display: flex; align-items: center; }
-  .clef-glyph { font-size: 150px; line-height: 1; color: var(--ink); position: relative; top: -6px; left: 10px; font-family: "Segoe UI Historic","Segoe UI Symbol", serif; }
+  .bar-line { position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--bar-line); }
 
   .road-placeholder {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -140,7 +145,71 @@
     position: absolute; top: 0; bottom: 0; border-radius: var(--radius-sm);
     background: transparent; transition: background .12s ease; pointer-events: none;
   }
+  /* every other measure gets a faint wash, so the eye reads "box, box, box" even when only
+     one of them fits on screen */
+  .measure-zone.alt { background: color-mix(in srgb, var(--ink) 5%, transparent); }
   .measure-zone.dragover { background: color-mix(in srgb, #6fd6c9 18%, transparent); }
+  /* the measure currently sounding */
+  .measure-zone.now { background: color-mix(in srgb, var(--accent-gold) 15%, transparent); }
+  .measure-num {
+    position: absolute; top: 2px; width: 19px; height: 19px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; color: var(--ink-soft);
+    background: color-mix(in srgb, var(--ink) 9%, transparent);
+    pointer-events: none; z-index: 2; transition: background .15s ease, color .15s ease;
+  }
+  .measure-num.now { background: var(--accent-gold); color: #241F3D; }
+  /* A note is never rejected: if the measure you aimed at is full, it lands in the next one.
+     On a phone that next measure is off screen, so from the child's side the note simply
+     vanished. These two flashes are the answer to "where did it go?" - the measure it landed
+     in is scrolled into view and lights up for a moment. */
+  .measure-zone.landed { animation: landedZone .9s ease; }
+  .measure-num.landed { animation: landedNum .9s ease; }
+  @keyframes landedZone {
+    0%   { background: color-mix(in srgb, #6fd6c9 42%, transparent); }
+    70%  { background: color-mix(in srgb, #6fd6c9 24%, transparent); }
+    100% { background: transparent; }
+  }
+  @keyframes landedNum {
+    0%   { transform: scale(1.7); background: #6fd6c9; color: #241F3D; }
+    60%  { transform: scale(1.15); background: #6fd6c9; color: #241F3D; }
+    100% { transform: scale(1); }
+  }
+  /* ---- "now carry it down to a box" ----
+     A child who has just filled a nest has no way of knowing the note is meant to travel
+     down to the staff. Two cues, no words, because half of them cannot read yet: a
+     see-through copy of their own character glides down the exact path, and the box it is
+     headed for breathes. Both stop for good the moment one note gets placed. */
+  .drop-ghost {
+    position: fixed; left: 0; top: 0; z-index: 30; opacity: 0;
+    border-radius: 50%; background: var(--panel);
+    border: 3px solid var(--ring, var(--accent-teal));
+    box-shadow: 0 0 0 4px color-mix(in srgb, #6fd6c9 32%, transparent), var(--shadow);
+    pointer-events: none;
+  }
+  .drop-ghost .road-note-avatar {
+    width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .drop-ghost img { width: 100%; height: 118%; object-fit: cover; object-position: center top; }
+  .measure-zone.hint-target {
+    outline: 3px dashed #6fd6c9; outline-offset: -5px; border-radius: var(--radius-sm);
+    animation: hintBreathe 1.7s ease-in-out infinite;
+  }
+  @keyframes hintBreathe {
+    0%, 100% { outline-color: color-mix(in srgb, #6fd6c9 35%, transparent); background: color-mix(in srgb, #6fd6c9 6%, transparent); }
+    50%      { outline-color: #6fd6c9; background: color-mix(in srgb, #6fd6c9 17%, transparent); }
+  }
+  .drop-arrow { display: none; justify-content: center; margin: 4px 0 -8px; }
+  .drop-arrow.on { display: flex; }
+  .drop-arrow svg { width: 30px; height: 30px; color: #6fd6c9; animation: arrowBob 1.25s ease-in-out infinite; }
+  @keyframes arrowBob { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(8px); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .measure-zone.hint-target, .drop-arrow svg { animation: none; }
+    .measure-zone.hint-target { background: color-mix(in srgb, #6fd6c9 14%, transparent); }
+  }
+  .road-note.just-landed { animation: notePop .5s ease; }
+  @keyframes notePop { 0% { transform: scale(.45); } 62% { transform: scale(1.22); } 100% { transform: scale(1); } }
   /* 4 dots per measure showing how much of it is still free, reusing the same LED-dot language
      as the nests — starts fully lit, and one dot goes dark for every beat that gets filled. */
   .measure-quota {
@@ -175,20 +244,41 @@
      expanded to a touch-friendly ~40px via this invisible halo, for phones/tablets */
   .road-note .rm::before { content: ""; position: absolute; inset: -11px; }
 
-  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
+  /* The controls used to be one flex pile: six buttons of six different widths, sized by how
+     long their words happened to be, wrapping at a different place on every screen. Same
+     visual weight on "play" - pressed constantly - as on "load a melody". Now they are
+     ranked: one big primary action, then even pairs on a real grid, then the settings last
+     and quiet. Nothing inside the game shrank; this is all chrome. */
+  .controls { display: grid; gap: 10px; margin-top: 16px; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn {
-    display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 999px;
-    padding: 10px 18px; font-size: 14.5px; font-weight: 700; cursor: pointer; color: #fff;
-    background: var(--accent-teal); box-shadow: var(--shadow); transition: transform .1s ease, opacity .15s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none;
+    border-radius: 999px; padding: 12px 14px; font-size: 14.5px; font-weight: 700; cursor: pointer;
+    color: #fff; background: var(--accent-teal); box-shadow: var(--shadow);
+    transition: transform .1s ease, opacity .15s ease; min-height: 48px; width: 100%;
   }
   .btn:active { transform: scale(.96); }
   .btn:disabled { opacity: .45; cursor: default; }
   .btn.secondary { background: var(--panel); color: var(--ink); border: 1px solid var(--panel-border); }
   .btn.danger { background: var(--miss); }
-  .sliders-group { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-inline-start: auto; }
-  .tempo-wrap { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-soft); }
-  .tempo-wrap input[type=range] { accent-color: var(--accent-teal); width: 70px; }
-  .tempo-wrap b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .btn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
+  /* one button, not two: while it plays it turns into stop, so the child is never asked to
+     pick between a live control and a dead one */
+  .btn-play { min-height: 60px; font-size: 18px; }
+  .btn-play .ico { width: 26px; height: 26px; }
+  .btn-play .ico-stop { display: none; }
+  .btn-play.is-playing { background: var(--miss); }
+  .btn-play.is-playing .ico-play { display: none; }
+  .btn-play.is-playing .ico-stop { display: block; }
+  .settings-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px 16px;
+    padding: 10px 14px; border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--paper-2) 60%, transparent);
+  }
+  .setting { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+  .setting input[type=range] { accent-color: var(--accent-teal); flex: 1 1 auto; min-width: 0; }
+  .setting b { color: var(--ink); font-variant-numeric: tabular-nums; min-width: 36px; text-align: center; }
+  @media (max-width: 360px) { .btn { font-size: 13.5px; padding: 12px 8px; gap: 6px; } }
 
   .drag-ghost { position: fixed; width: 52px; height: 52px; border-radius: 50%; pointer-events: none; z-index: 999;
     border: 3px solid var(--accent-gold); box-shadow: var(--shadow); overflow: hidden; background: var(--panel);
@@ -270,12 +360,14 @@
     <h3 class="workbench-title">גררו דמות לכאן כדי ליצור תו</h3>
     <div class="workbench-arrow" aria-hidden="true">↓</div>
     <div class="workbench" id="workbench"></div>
+    <div class="drop-arrow" id="dropArrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4v13" /><path d="M6 12l6 6 6-6" />
+      </svg>
+    </div>
 
     <div class="road-wrap" id="roadWrap">
       <div class="road" id="road">
-        <div class="clef-zone">
-          <span class="clef-glyph">𝄞</span>
-        </div>
         <div class="road-staff" id="roadStaff"></div>
         <div class="road-inner" id="roadInner"></div>
         <div class="playhead" id="playhead"></div>
@@ -283,15 +375,34 @@
     </div>
 
     <div class="controls">
-      <button class="btn" id="btnPlay">▶ נגן</button>
-      <button class="btn secondary" id="btnStop">⏹ עצור</button>
-      <button class="btn secondary" id="btnUndo">↩ הסר אחרון</button>
-      <button class="btn danger" id="btnClear">🗑 נקה הכל</button>
-      <button class="btn secondary" id="btnExport">💾 שמרו מנגינה</button>
-      <button class="btn secondary" id="btnImport">📤 טענו מנגינה</button>
-      <div class="sliders-group">
-        <div class="tempo-wrap">קצב <input type="range" id="tempo" min="60" max="160" value="90" step="2"><b id="tempoVal">90</b></div>
-        <div class="tempo-wrap">שמע <input type="range" id="volume" min="0" max="100" value="80" step="5"><b id="volumeVal">80%</b></div>
+      <button class="btn btn-play" id="btnPlay" aria-label="נגן">
+        <svg class="ico ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>
+        <svg class="ico ico-stop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>
+        <span class="btn-label">נגן</span>
+      </button>
+      <div class="btn-row">
+        <button class="btn secondary" id="btnUndo">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a6 6 0 0 1 0 12h-2"/></svg>
+          <span class="btn-label">הסר אחרון</span>
+        </button>
+        <button class="btn danger" id="btnClear">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9.5 7V4.8h5V7"/><path d="M6.4 7l.9 12.2h9.4L17.6 7"/><path d="M10.2 10.5v6M13.8 10.5v6"/></svg>
+          <span class="btn-label">נקה הכל</span>
+        </button>
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" id="btnExport">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M5 19h14"/></svg>
+          <span class="btn-label">שמרו</span>
+        </button>
+        <button class="btn secondary" id="btnImport">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V8"/><path d="M8 11.5l4-4 4 4"/><path d="M5 19h14"/></svg>
+          <span class="btn-label">טענו</span>
+        </button>
+      </div>
+      <div class="settings-row">
+        <label class="setting">קצב <input type="range" id="tempo" min="60" max="160" value="90" step="2"><b id="tempoVal">90</b></label>
+        <label class="setting">שמע <input type="range" id="volume" min="0" max="100" value="80" step="5"><b id="volumeVal">80%</b></label>
       </div>
     </div>
   </div>
@@ -339,13 +450,13 @@
   const els = {
     castStrip: document.getElementById("castStrip"),
     workbench: document.getElementById("workbench"),
+    dropArrow: document.getElementById("dropArrow"),
     road: document.getElementById("road"),
     roadWrap: document.getElementById("roadWrap"),
     roadStaff: document.getElementById("roadStaff"),
     roadInner: document.getElementById("roadInner"),
     playhead: document.getElementById("playhead"),
     btnPlay: document.getElementById("btnPlay"),
-    btnStop: document.getElementById("btnStop"),
     btnUndo: document.getElementById("btnUndo"),
     btnClear: document.getElementById("btnClear"),
     btnExport: document.getElementById("btnExport"),
@@ -368,8 +479,19 @@
   }
   let audioCtx = null;
   function ensureAudioCtx() {
+    // "interrupted" is a Safari-only state and it is not sleep: the context has been taken
+    // away from the page by another app or a call, and resume() will not reliably get it
+    // back. A fresh context will. The cached limiter, reverb and volume gain belong to the
+    // dead one and cannot be connected across contexts, so they have to go with it.
+    if (audioCtx && audioCtx.state === "interrupted") {
+      try { audioCtx.close(); } catch (e) {}
+      audioCtx = null;
+      masterLimiter = null;
+      masterVolumeGain = null;
+      reverbNode = null;
+    }
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (audioCtx.state !== "running") { try { audioCtx.resume(); } catch (e) {} }
     return audioCtx;
   }
 
@@ -426,24 +548,56 @@
   function unlockAudio() {
     try {
       const ac = ensureAudioCtx();
+      if (ac.state !== "running") ac.resume().catch(() => {});
+      // Safari wants a buffer actually played from inside the gesture before it will let the
+      // context run - resume() on its own is not enough to convince it.
+      const src = ac.createBufferSource();
+      src.buffer = ac.createBuffer(1, 1, 22050);
+      src.connect(ac.destination);
+      src.start(0);
       const osc = ac.createOscillator(), gain = ac.createGain();
       gain.gain.value = 0.0001;
       osc.connect(gain).connect(ac.destination);
       osc.start(); osc.stop(ac.currentTime + 0.05);
     } catch (e) {}
   }
-  document.addEventListener("pointerdown", unlockAudio, { once: true });
+
+  // Listening on pointerdown alone was the whole first-note bug. Safari on iOS decides for
+  // itself which events count as a real gesture for audio, and dragging - which is all this
+  // lesson does until the play button is pressed - did not count. That is exactly why sound
+  // only ever arrived after the first press of play, and worked from then on. So try every
+  // event that can carry a gesture, keep trying until the context actually reports itself
+  // running, and only then stop listening.
+  const PRIME_EVENTS = ["touchstart", "touchend", "pointerdown", "pointerup", "mousedown", "click", "keydown"];
+  function primeAudio() {
+    unlockAudio();
+    if (audioCtx && audioCtx.state === "running") {
+      PRIME_EVENTS.forEach(evt => document.removeEventListener(evt, primeAudio, true));
+    }
+  }
+  PRIME_EVENTS.forEach(evt => document.addEventListener(evt, primeAudio, { capture: true, passive: true }));
+
+  // The audio context can be asked to wake and simply not be awake yet, and on iOS the
+  // promise resume() hands back is not something to build on - it can sit pending while the
+  // context is already running, or never settle at all. So watch the state itself. Anything
+  // that wants to make a sound goes through here, and nothing is ever scheduled onto a
+  // context that is still asleep - which is what silently ate the very first note of a
+  // session, the one a child plays before any other sound has woken anything up.
+  function whenAudioReady(fn) {
+    // Deliberately no held reference to a context: ensureAudioCtx may hand back a brand new
+    // one if the old was taken away mid-wait, and waiting on the dead one would wait forever.
+    if (ensureAudioCtx().state === "running") { fn(); return; }
+    let tries = 0;
+    const iv = setInterval(() => {
+      if (ensureAudioCtx().state === "running") { clearInterval(iv); fn(); return; }
+      if (++tries > 80) clearInterval(iv); // ~2s, then give up rather than leak a timer
+    }, 25);
+  }
 
   function playPianoNote(freq, velocity, sustainSec) {
     velocity = velocity || 1;
     const ac = ensureAudioCtx();
-    // ac.resume() is async — on mobile especially, the very first sound scheduled right after
-    // waking the context can get silently dropped if we don't actually wait for it to finish
-    // resuming first. That's exactly "works, but not the very first time."
-    if (ac.state !== "running") {
-      ac.resume().then(() => playPianoNote(freq, velocity, sustainSec)).catch(() => {});
-      return;
-    }
+    if (ac.state !== "running") { whenAudioReady(() => playPianoNote(freq, velocity, sustainSec)); return; }
     try {
       const t0 = ac.currentTime;
       const master = ac.createGain();
@@ -496,14 +650,12 @@
   function playSustainedNote(freq, velocity, totalSec) {
     velocity = velocity || 1;
     const ac = ensureAudioCtx();
-    if (ac.state !== "running") {
-      ac.resume().then(() => playSustainedNote(freq, velocity, totalSec)).catch(() => {});
-      return;
-    }
+    if (ac.state !== "running") { whenAudioReady(() => playSustainedNote(freq, velocity, totalSec)); return; }
     try {
       const t0 = ac.currentTime;
       const master = ac.createGain();
-      connectWithReverb(master, ac);
+      // if the reverb/limiter chain ever fails to build, a dry note still beats no note
+      try { connectWithReverb(master, ac); } catch (e) { master.connect(ac.destination); }
       const attack = 0.02;
       const release = Math.min(0.4, totalSec * 0.3);
       const holdEnd = Math.max(attack + 0.01, totalSec - release);
@@ -548,7 +700,10 @@
   // start of the next measure instead. That's the whole teaching mechanism: a child sees "I
   // added one and it jumped to the next box" instead of being blocked with no explanation, or
   // having the box silently hold more than 4/4 really allows. ----------
-  const CLEF_ZONE = 110;
+  // The staff used to open with a 110px treble clef - 38% of a phone screen spent before a
+  // single note showed, on a symbol no child here reads or touches. It is gone; all that is
+  // left is a small gutter so the first bar line is not glued to the edge.
+  const LEFT_GUTTER = 24;
   const PX_PER_BEAT = 70;
   const MEASURE_BEATS = 4;
   const MEASURE_W = PX_PER_BEAT * MEASURE_BEATS;
@@ -561,15 +716,29 @@
   function beatsUsed(m) { return m.reduce((s, it) => s + it.dur, 0); }
   function remaining(m) { return MEASURE_BEATS - beatsUsed(m); }
   function isEmptyMeasure(m) { return m.length === 0; }
-  function measureXStart(i) { return CLEF_ZONE + i * MEASURE_W; }
+  function measureXStart(i) { return LEFT_GUTTER + i * MEASURE_W; }
   function measureIndexAtX(x) {
-    let idx = Math.floor((x - CLEF_ZONE) / MEASURE_W);
+    let idx = Math.floor((x - LEFT_GUTTER) / MEASURE_W);
     if (idx < 0) idx = 0;
     if (idx >= measures.length) idx = measures.length - 1;
     return idx;
   }
 
-  function ensureTrailingEmptyMeasure() {
+  // An empty box in front of the music is not a rest here - it is a hole a child made by
+  // dropping their first note slightly to the right, and it made playback appear to begin in
+  // measure 2 with nothing to hear before it. Boxes fill in order: no empty one is allowed to
+  // sit before a box that has music in it.
+  function dropGapsBeforeMusic() {
+    let lastUsed = -1;
+    for (let i = 0; i < measures.length; i++) if (measures[i].length) lastUsed = i;
+    if (lastUsed < 1) return;
+    for (let i = lastUsed - 1; i >= 0; i--) {
+      if (!measures[i].length) measures.splice(i, 1);
+    }
+  }
+
+  function tidyMeasures() {
+    dropGapsBeforeMusic();
     while (measures.length >= 2 && isEmptyMeasure(measures[measures.length - 1]) && isEmptyMeasure(measures[measures.length - 2])) {
       measures.pop();
     }
@@ -587,27 +756,50 @@
     measures.push([]);
     return measures.length - 1;
   }
+  // Scroll the measure a note just landed in into view and flash it. scrollToMeasure is a
+  // function declaration further down, so it is already hoisted by the time this runs.
+  function revealLanding(mIdx, item) {
+    retireHint(); // they worked it out - stop teaching it
+    // instant, not smooth: a smooth scroll from a drop keeps unwinding for a few hundred
+    // milliseconds and drags the view back off wherever playback just put it
+    scrollToMeasure(mIdx, true);
+    const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + mIdx + '"]');
+    const num = els.roadInner.querySelector('.measure-num[data-measure-index="' + mIdx + '"]');
+    const note = item ? noteEls.get(item) : null;
+    [[zone, "landed"], [num, "landed"], [note, "just-landed"]].forEach(pair => {
+      const el = pair[0], cls = pair[1];
+      if (!el) return;
+      el.classList.remove(cls);
+      void el.offsetWidth; // restart the animation
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), 950);
+    });
+  }
+
   function appendItem(item) {
     const idx = findMeasureFrom(0, item.dur);
     measures[idx].push(item);
-    ensureTrailingEmptyMeasure();
+    tidyMeasures();
     renderRoad();
+    revealLanding(idx, item);
   }
   function insertNear(targetIdx, item) {
     const idx = findMeasureFrom(targetIdx, item.dur);
     measures[idx].push(item);
-    ensureTrailingEmptyMeasure();
+    tidyMeasures();
     renderRoad();
+    const loc = locateItem(item); // collapsing a gap can have moved it a box to the left
+    revealLanding(loc ? loc.mIdx : idx, item);
     return idx;
   }
   function removeItem(mIdx, iIdx) {
     measures[mIdx].splice(iIdx, 1);
-    ensureTrailingEmptyMeasure();
+    tidyMeasures();
     renderRoad();
   }
   function undo() {
     for (let i = measures.length - 1; i >= 0; i--) {
-      if (measures[i].length) { measures[i].pop(); ensureTrailingEmptyMeasure(); renderRoad(); return; }
+      if (measures[i].length) { measures[i].pop(); tidyMeasures(); renderRoad(); return; }
     }
   }
   function clearAll() { measures = [[], []]; renderRoad(); }
@@ -670,6 +862,81 @@
     dotEls[dur] = dots;
     wireSocketDrag(socket, dur);
   });
+  // ---------- the drop hint ----------
+  let hasPlacedANote = false;
+  let hintTimers = [];
+  let lastFilledCount = 0;
+
+  function hintIsWanted() {
+    return !hasPlacedANote && !playing && [1, 2, 4].some(d => workbench[d]);
+  }
+  // aim at the measure the note would really land in, so the hint never points at a full box
+  function hintTargetMeasure() {
+    const dur = [4, 2, 1].find(d => workbench[d]) || 1;
+    // deliberately not findMeasureFrom: that one appends a fresh measure when everything is
+    // full, and merely pointing at a box should never grow the piece
+    for (let i = 0; i < measures.length; i++) {
+      if (remaining(measures[i]) >= dur) return i;
+    }
+    return measures.length - 1;
+  }
+  function applyHintTarget() {
+    els.roadInner.querySelectorAll(".measure-zone.hint-target").forEach(z => z.classList.remove("hint-target"));
+    const wanted = hintIsWanted();
+    if (els.dropArrow) els.dropArrow.classList.toggle("on", wanted);
+    if (!wanted) return;
+    const z = els.roadInner.querySelector('.measure-zone[data-measure-index="' + hintTargetMeasure() + '"]');
+    if (z) z.classList.add("hint-target");
+  }
+  function clearHint() {
+    hintTimers.forEach(t => clearTimeout(t));
+    hintTimers = [];
+    document.querySelectorAll(".drop-ghost").forEach(g => g.remove());
+  }
+  function flyGhostOnce() {
+    if (!hintIsWanted() || ghostEl) return; // never compete with a real finger already dragging
+    const dur = [4, 2, 1].find(d => workbench[d]);
+    const socket = socketEls[dur];
+    const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + hintTargetMeasure() + '"]');
+    if (!socket || !zone) return;
+    const from = socket.getBoundingClientRect();
+    const to = zone.getBoundingClientRect();
+    if (!from.width || !to.width) return;
+    const size = noteSizeFor(dur);
+    const ghost = document.createElement("div");
+    ghost.className = "drop-ghost";
+    ghost.style.width = size + "px";
+    ghost.style.height = size + "px";
+    ghost.style.setProperty("--ring", ringVar(workbench[dur]));
+    ghost.innerHTML = '<span class="road-note-avatar"><img src="' + IMG_SRC[workbench[dur]] + '" alt=""></span>';
+    document.body.appendChild(ghost);
+    const x0 = from.left + from.width / 2 - size / 2, y0 = from.top + from.height / 2 - size / 2;
+    const x1 = to.left + Math.min(to.width, 120) / 2 - size / 2, y1 = to.top + to.height / 2 - size / 2;
+    const at = (x, y, sc) => "translate(" + x + "px, " + y + "px) scale(" + sc + ")";
+    if (typeof ghost.animate !== "function") { ghost.remove(); return; }
+    const anim = ghost.animate([
+      { transform: at(x0, y0, 1), opacity: 0 },
+      { transform: at(x0, y0, 1), opacity: 0.9, offset: 0.14 },
+      { transform: at(x1, y1, 0.95), opacity: 0.9, offset: 0.76 },
+      { transform: at(x1, y1, 0.66), opacity: 0 }
+    ], { duration: 1550, easing: "ease-in-out" });
+    anim.onfinish = () => ghost.remove();
+    anim.oncancel = () => ghost.remove();
+  }
+  // three passes is enough to read as "do this"; more would nag a child who already got it
+  function runHintBurst() {
+    clearHint();
+    if (!hintIsWanted()) return;
+    for (let k = 0; k < 3; k++) {
+      hintTimers.push(setTimeout(flyGhostOnce, 250 + k * 2050));
+    }
+  }
+  function retireHint() {
+    hasPlacedANote = true;
+    clearHint();
+    applyHintTarget();
+  }
+
   function renderSockets() {
     [1, 2, 4].forEach(dur => {
       const socket = socketEls[dur];
@@ -690,6 +957,11 @@
         socket.innerHTML = "";
       }
     });
+    // a nest that just lit up is exactly the moment the child needs to be told where next
+    const filled = [1, 2, 4].filter(d => workbench[d]).length;
+    if (filled > lastFilledCount) runHintBurst();
+    lastFilledCount = filled;
+    applyHintTarget();
   }
   renderSockets();
 
@@ -708,8 +980,8 @@
     return null;
   }
   function renderRoad() {
-    els.roadInner.querySelectorAll(".bar-line, .measure-zone, .measure-quota").forEach(el => el.remove());
-    const totalW = CLEF_ZONE + measures.length * MEASURE_W + 20;
+    els.roadInner.querySelectorAll(".bar-line, .measure-zone, .measure-quota, .measure-num").forEach(el => el.remove());
+    const totalW = LEFT_GUTTER + measures.length * MEASURE_W + 20;
     els.road.style.width = totalW + "px";
 
     // bar lines: exactly one per real measure boundary, so the grid always matches the content
@@ -721,13 +993,24 @@
     }
 
     const seen = new Set();
+    // playback looks its notes up by data-seq. Nothing ever wrote that attribute, so the
+    // lookup always came back empty and no note has ever lit up while it sounded. This walks
+    // the measures in the same order flattenSequence does, so the numbers line up.
+    let seq = 0;
     measures.forEach((m, mIdx) => {
       const zone = document.createElement("div");
-      zone.className = "measure-zone";
+      zone.className = "measure-zone" + (mIdx % 2 === 1 ? " alt" : "");
       zone.style.left = measureXStart(mIdx) + "px";
       zone.style.width = MEASURE_W + "px";
       zone.dataset.measureIndex = mIdx;
       els.roadInner.appendChild(zone);
+
+      const numBadge = document.createElement("div");
+      numBadge.className = "measure-num";
+      numBadge.style.left = (measureXStart(mIdx) + 7) + "px";
+      numBadge.dataset.measureIndex = mIdx;
+      numBadge.textContent = String(mIdx + 1);
+      els.roadInner.appendChild(numBadge);
 
       const quotaRow = document.createElement("div");
       quotaRow.className = "measure-quota";
@@ -765,6 +1048,7 @@
           noteEls.set(item, note);
         }
         note.className = "road-note" + (NOTES[item.key].step <= -2 ? " ledger" : "");
+        note.dataset.seq = seq++;
         note.style.left = cx + "px";
         note.style.top = y + "px";
         note.style.width = size + "px";
@@ -778,6 +1062,8 @@
     noteEls.forEach((note, item) => {
       if (!seen.has(item)) { note.remove(); noteEls.delete(item); }
     });
+
+    applyHintTarget(); // the zones were just rebuilt, so the breathing box has to be re-marked
   }
 
   // ---------- step 1: drag a character from the cast strip onto a "nest" to create a note ----------
@@ -818,6 +1104,7 @@
     let dragging = false, startX = 0, startY = 0;
     chipEl.addEventListener("pointerdown", (e) => {
       if (playing) return;
+      unlockAudio(); // a whole drag of head start for the audio context to wake up
       if (activeChipDrag) activeChipDrag();
       startX = e.clientX; startY = e.clientY; dragging = false;
       chipEl.setPointerCapture(e.pointerId);
@@ -854,8 +1141,10 @@
           if (socket) {
             const dur = Number(socket.dataset.dur);
             workbench[dur] = key;
-            renderSockets();
+            // sound first: it used to sit behind renderSockets, so anything that threw while
+            // drawing the nests swallowed the note the child was waiting to hear
             playBeatCount(key, dur);
+            renderSockets();
           } else if (els.road.contains(el)) {
             // dropped straight on the staff, skipping the "choose a length" nest step —
             // give a clear "not yet" cue instead of silently doing nothing
@@ -883,6 +1172,7 @@
     let dragging = false, startX = 0, startY = 0;
     socketEl.addEventListener("pointerdown", (e) => {
       if (playing || !workbench[dur]) return;
+      unlockAudio();
       if (activeSocketDrag) activeSocketDrag();
       const key = workbench[dur];
       startX = e.clientX; startY = e.clientY; dragging = false;
@@ -981,7 +1271,23 @@
     const cleaned = raw.map(m => (Array.isArray(m) ? m : []).filter(it =>
       it && it.type === "note" && [1, 2, 4].includes(it.dur) && NOTES[it.key]
     ).map(it => ({ type: "note", key: it.key, dur: it.dur })));
-    return cleaned.length ? cleaned : [[], []];
+    return cleaned.length ? repackMeasures(cleaned) : [[], []];
+  }
+
+  // A melody coming back from a slot has to obey the same rules as one built by hand - four
+  // beats to a box, boxes in order, no holes - and the stored shape guaranteed none of them.
+  // A slot written before those rules existed loaded straight back in, which is how a box
+  // ended up holding eight notes. Take the notes in order and lay them out again.
+  function repackMeasures(cleaned) {
+    const flat = [];
+    cleaned.forEach(m => m.forEach(it => flat.push(it)));
+    const out = [[]];
+    flat.forEach(it => {
+      let box = out[out.length - 1];
+      if (remaining(box) < it.dur) { out.push([]); box = out[out.length - 1]; }
+      box.push(it);
+    });
+    return out;
   }
 
   function updateTempoLabel() { els.tempoVal.textContent = els.tempo.value; }
@@ -1032,6 +1338,7 @@
             writeSlot(i, { measures, bpm: Number(els.tempo.value) });
           } else {
             measures = sanitizeMeasures(data.measures || []);
+            tidyMeasures();
             if (data.bpm) { els.tempo.value = data.bpm; updateTempoLabel(); }
             stopPlayback();
             renderRoad();
@@ -1109,26 +1416,65 @@
     els.roadInner.querySelectorAll(".measure-quota .beat-dot.lit").forEach(d => d.classList.remove("lit"));
   }
 
+  // Instead of chasing each note (which slid the bar lines off screen mid-measure), hold one
+  // whole measure still and only move at the bar line - the move itself teaches where a
+  // measure ends. If the whole piece already fits on screen, never scroll at all.
+  let lastScrolledMeasure = -1;
+  function scrollToStart() {
+    if (!els.roadWrap) return;
+    const set = () => {
+      if (typeof els.roadWrap.scrollTo === "function") els.roadWrap.scrollTo({ left: 0, behavior: "auto" });
+      els.roadWrap.scrollLeft = 0;
+    };
+    set();
+    requestAnimationFrame(set);
+    [40, 90, 160, 260, 400].forEach(ms => setTimeout(set, ms));
+  }
+  function scrollToMeasure(mIdx, instant) {
+    if (!els.roadWrap) return;
+    const wrapW = els.roadWrap.clientWidth;
+    if (els.road.offsetWidth <= wrapW + 2) return;
+    const fitsFromStart = wrapW >= LEFT_GUTTER + MEASURE_W;
+    const left = (mIdx === 0 && fitsFromStart) ? 0 : Math.max(0, measureXStart(mIdx) - 12);
+    if (typeof els.roadWrap.scrollTo === "function") {
+      els.roadWrap.scrollTo({ left: left, behavior: instant ? "auto" : "smooth" });
+    } else {
+      els.roadWrap.scrollLeft = left;
+    }
+  }
+
+  function setPlayButton(isPlaying) {
+    els.btnPlay.classList.toggle("is-playing", isPlaying);
+    const label = els.btnPlay.querySelector(".btn-label");
+    if (label) label.textContent = isPlaying ? "עצור" : "נגן";
+    els.btnPlay.setAttribute("aria-label", isPlaying ? "עצור" : "נגן");
+  }
+
   function stopPlayback() {
     playing = false;
+    lastScrolledMeasure = -1;
+    els.roadInner.querySelectorAll(".measure-zone.now, .measure-num.now").forEach(z => z.classList.remove("now"));
     if (playTimer) clearTimeout(playTimer);
     playTimer = null;
     els.playhead.style.transitionDuration = "0s";
     els.playhead.style.opacity = "0";
     clearPlayingDots();
     els.roadInner.querySelectorAll(".playing").forEach(n => n.classList.remove("playing"));
-    els.btnPlay.disabled = false;
+    setPlayButton(false);
   }
 
   function startPlayback() {
     const seq = flattenSequence();
     if (!seq.length || playing) return;
     playing = true;
-    if (els.roadWrap) {
-      els.roadWrap.scrollLeft = 0;
-      requestAnimationFrame(() => { els.roadWrap.scrollLeft = 0; });
-    }
-    els.btnPlay.disabled = true;
+    lastScrolledMeasure = -1;
+    // The melody always begins in box 1, so playback always begins the view there too -
+    // never wherever the child happened to have scrolled to. One assignment is not enough:
+    // a smooth scroll left over from the last drop keeps unwinding on iOS and drags the view
+    // back off, so the position is re-asserted over the next few frames until it sticks.
+    scrollToStart();
+    lastScrolledMeasure = 0; // box 1 is already on screen; do not scroll again for it
+    setPlayButton(true);
     els.playhead.style.opacity = "1";
     unlockAudio();
     const bpm = Number(els.tempo.value);
@@ -1143,13 +1489,15 @@
       els.playhead.style.transitionDuration = "0s";
       els.playhead.style.left = entry.x + "px";
       if (targetNode) targetNode.classList.add("playing");
-      if (els.roadWrap && i === 0) {
-        els.roadWrap.scrollLeft = 0;
-      } else if (els.roadWrap) {
-        const visibleRight = els.roadWrap.scrollLeft + els.roadWrap.clientWidth;
-        if (entry.x > visibleRight - 80 || entry.x < els.roadWrap.scrollLeft + 40) {
-          els.roadWrap.scrollLeft = Math.max(0, entry.x - 80);
-        }
+      // Mark which measure is sounding, and turn the "page" only at a bar line.
+      els.roadInner.querySelectorAll(".measure-zone.now, .measure-num.now").forEach(z => z.classList.remove("now"));
+      const zoneNow = els.roadInner.querySelector('.measure-zone[data-measure-index="' + entry.mIdx + '"]');
+      if (zoneNow) zoneNow.classList.add("now");
+      const numNow = els.roadInner.querySelector('.measure-num[data-measure-index="' + entry.mIdx + '"]');
+      if (numNow) numNow.classList.add("now");
+      if (entry.mIdx !== lastScrolledMeasure) {
+        lastScrolledMeasure = entry.mIdx;
+        scrollToMeasure(entry.mIdx, i === 0); // the first jump is instant, so nothing outruns it
       }
       const waitMs = entry.item.dur * beatMs;
       if (entry.item.type === "note") {
@@ -1168,8 +1516,7 @@
     scheduleNext(0);
   }
 
-  els.btnPlay.addEventListener("click", startPlayback);
-  els.btnStop.addEventListener("click", stopPlayback);
+  els.btnPlay.addEventListener("click", () => { if (playing) stopPlayback(); else startPlayback(); });
 
   updateTempoLabel();
   renderStaffLines();
