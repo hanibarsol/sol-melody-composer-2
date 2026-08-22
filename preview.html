@@ -25,13 +25,21 @@
   }
   /* Locked width. Without it a layout drawn for a phone stretches across a desktop window,
      the characters go soft and the screen reads as empty. */
-  .page { max-width:430px; margin:0 auto; padding:10px 8px 14px; }
-  .head { text-align:center; padding-left:52px; min-height:44px; }
+  .page { max-width:430px; margin:0 auto; padding:10px 8px 10px; }
+  /* The corner now holds two things, not one: the home button and, under it, the lesson nav
+     arrows the platform added. The header band reserves the whole column they occupy, so the
+     family strip starts below both. Reserving is the rule here - the arrows are not moved out
+     of the place every other lesson puts them, and nothing on screen is made smaller to fit
+     around them. */
+  .head {
+    text-align:center; padding-left:96px; min-height:84px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
   .head b { font-size:17px; font-weight:800; }
   .head span { display:block; font-size:11.5px; color:var(--ink-soft); margin-top:1px; }
 
   /* the whole family stays visible together - this is not negotiable */
-  .cast { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 7px; margin-top:8px; }
+  .cast { display:flex; flex-wrap:wrap; justify-content:center; gap:6px 7px; margin-top:6px; }
   .chip {
     width:64px; display:flex; flex-direction:column; align-items:center; gap:2px;
     background:none; border:none; padding:0; color:var(--ink); cursor:grab; touch-action:none;
@@ -47,20 +55,27 @@
   .chip-av img { width:100%; height:118%; object-fit:cover; object-position:center top; pointer-events:none; }
   .chip-name { font-size:12.5px; font-weight:700; pointer-events:none; }
 
-  .bars { margin-top:10px; display:flex; flex-direction:column; gap:7px; }
+  .bars { margin-top:8px; display:flex; flex-direction:column; gap:6px; }
   .bar {
     position:relative; background:var(--panel); border:1px solid var(--panel-border);
-    border-radius:12px; padding:9px 9px 3px; box-shadow:var(--shadow);
-    transition:box-shadow .15s ease;
+    border-radius:12px; padding:7px 8px 2px; box-shadow:var(--shadow);
+    transition:box-shadow .15s ease, background .15s ease;
   }
-  .bar.now { box-shadow:0 0 0 2px var(--gold), var(--shadow); }
+  /* The whole row lights, not just its edge. A warm wash is the right ground for this: the
+     beat dots are teal, so lighting them against gold is the strongest contrast on the page
+     and the subdivision inside the bar reads at a glance - which is the thing being taught. */
+  .bar.now {
+    background:color-mix(in srgb, var(--gold) 20%, var(--panel));
+    box-shadow:0 0 0 2px var(--gold), 0 8px 22px rgba(232,163,61,.30);
+  }
+  .bar.now .bar-label { color:color-mix(in srgb, var(--ink) 72%, transparent); }
   .bar-num {
     position:absolute; top:5px; right:7px; width:18px; height:18px; border-radius:50%;
     background:color-mix(in srgb, var(--ink) 9%, transparent); color:var(--ink-soft);
     font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;
   }
   .bar-num.now { background:var(--gold); color:#241F3D; }
-  .bar-label { text-align:center; font-size:10.5px; color:var(--ink-soft); padding:1px 0 3px; }
+  .bar-label { text-align:center; font-size:10px; color:var(--ink-soft); padding:0 0 2px; }
   /* Every bar the same width, each slot taking the share its beats are worth - so the row
      length says what the circle size says, and four quarters visibly equal one whole. */
   .bar-body { display:flex; align-items:flex-end; direction:ltr; }
@@ -102,9 +117,17 @@
   }
   .rm::after { content:""; position:absolute; inset:-11px; border-radius:50%; }
 
-  .dots { display:flex; gap:4px; height:9px; align-items:center; }
+  .dots { display:flex; gap:4px; height:11px; align-items:center; }
   .d { width:7px; height:7px; border-radius:50%; background:color-mix(in srgb, var(--led) 40%, transparent); transition:background .12s ease, transform .12s ease; }
   .d.lit { background:var(--led); transform:scale(1.25); box-shadow:0 0 6px rgba(111,214,201,.8); }
+  /* inside the sounding row the unlit dots go quiet and the lit one gets louder, so the beat
+     travelling through the bar is unmistakable */
+  .bar.now .d { background:color-mix(in srgb, var(--ink) 20%, transparent); }
+  .bar.now .d.lit { background:#0E9C8C; transform:scale(1.6); box-shadow:0 0 10px 4px rgba(14,156,140,.75); }
+  @media (prefers-color-scheme: dark) {
+    .bar.now .d { background:color-mix(in srgb, var(--ink) 26%, transparent); }
+    .bar.now .d.lit { background:#7CF3E2; box-shadow:0 0 10px 4px rgba(124,243,226,.8); }
+  }
 
   .play {
     margin-top:10px; width:100%; min-height:56px; border:none; border-radius:999px;
@@ -147,6 +170,11 @@
   .diag { margin-top:9px; padding:7px 9px; border-radius:8px; background:#241F3D; color:#7CF3E2;
     font:12px/1.5 ui-monospace,Menlo,Consolas,monospace; direction:ltr; text-align:left; white-space:pre; }
 
+  /* While the melody plays the slots hold still. The drift is there to invite a drop; once
+     nobody is dropping anything it only competes with the thing the child is meant to be
+     watching. They settle, the bar travels through them, and they lift off again the moment
+     it stops. */
+  body.is-playing .slot { animation:none !important; }
   @media (prefers-reduced-motion: reduce) { .slot { animation:none; } }
 </style>
 <style>
@@ -731,6 +759,7 @@
   }
   function stopPlayback() {
     playing = false;
+    document.body.classList.remove("is-playing"); // the slots start drifting again at once
     if (playTimer) clearTimeout(playTimer);
     playTimer = null;
     clearDots();
@@ -742,6 +771,7 @@
     if (playing) return;
     if (!slots.some(s => s.key)) return; // nothing to hear yet
     playing = true;
+    document.body.classList.add("is-playing"); // hold the slots still while the bar travels
     setPlayButton(true);
     unlockAudio();
     const ms = beatMs();
