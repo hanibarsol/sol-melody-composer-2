@@ -61,14 +61,17 @@
     border-radius:12px; padding:7px 8px 2px; box-shadow:var(--shadow);
     transition:box-shadow .15s ease, background .15s ease;
   }
-  /* The whole row lights, not just its edge. A warm wash is the right ground for this: the
-     beat dots are teal, so lighting them against gold is the strongest contrast on the page
-     and the subdivision inside the bar reads at a glance - which is the thing being taught. */
+  /* The whole row lights, not just its edge. Gold was the obvious choice and the wrong one:
+     it is loud against a mint page and it collides with fa's ochre and la's sand, so the row
+     fought the characters standing in it. Pale turquoise belongs here - but the beat dots are
+     turquoise too, and a turquoise field would swallow the one thing the row exists to show.
+     Hence the white collar on the lit dot below: it is what separates the lamp from the wall. */
   .bar.now {
-    background:color-mix(in srgb, var(--gold) 20%, var(--panel));
-    box-shadow:0 0 0 2px var(--gold), 0 8px 22px rgba(232,163,61,.30);
+    background:color-mix(in srgb, var(--led) 26%, var(--panel));
+    box-shadow:0 0 0 2px var(--teal), 0 8px 22px rgba(23,167,155,.26);
   }
   .bar.now .bar-label { color:color-mix(in srgb, var(--ink) 72%, transparent); }
+  .bar-num.now { background:var(--teal); color:#fff; }
   .bar-num {
     position:absolute; top:5px; right:7px; width:18px; height:18px; border-radius:50%;
     background:color-mix(in srgb, var(--ink) 9%, transparent); color:var(--ink-soft);
@@ -106,7 +109,9 @@
     animation:drift 3.4s ease-in-out infinite, pop .4s ease;
   }
   @keyframes pop { 0%{transform:scale(.5)} 60%{transform:scale(1.16)} 100%{transform:scale(1)} }
-  .slot.playing { box-shadow:0 0 0 4px color-mix(in srgb, var(--gold) 65%, transparent), var(--shadow); }
+  /* a white collar again, for the same reason: the character now stands on turquoise, and a
+     turquoise halo around it would disappear into the row it is sitting in */
+  .slot.playing { box-shadow:0 0 0 4px rgba(255,255,255,.95), 0 0 16px 6px rgba(11,108,99,.35), var(--shadow); }
   .slot-av { position:absolute; inset:0; border-radius:50%; overflow:hidden; display:flex; align-items:flex-end; justify-content:center; }
   .slot-av img { width:100%; height:118%; object-fit:cover; object-position:center top; pointer-events:none; }
   .rm {
@@ -120,13 +125,21 @@
   .dots { display:flex; gap:4px; height:11px; align-items:center; }
   .d { width:7px; height:7px; border-radius:50%; background:color-mix(in srgb, var(--led) 40%, transparent); transition:background .12s ease, transform .12s ease; }
   .d.lit { background:var(--led); transform:scale(1.25); box-shadow:0 0 6px rgba(111,214,201,.8); }
-  /* inside the sounding row the unlit dots go quiet and the lit one gets louder, so the beat
-     travelling through the bar is unmistakable */
-  .bar.now .d { background:color-mix(in srgb, var(--ink) 20%, transparent); }
-  .bar.now .d.lit { background:#0E9C8C; transform:scale(1.6); box-shadow:0 0 10px 4px rgba(14,156,140,.75); }
+  /* Inside the sounding row the unlit dots fade almost into the wash and the lit one goes
+     deep, with a white collar so it never blends into a field of its own colour. It reads as
+     a lamp switching on rather than a dot changing shade. */
+  .bar.now .d { background:color-mix(in srgb, var(--teal) 20%, transparent); }
+  .bar.now .d.lit {
+    background:#0B6C63; transform:scale(1.65);
+    box-shadow:0 0 0 2.5px rgba(255,255,255,.92), 0 0 12px 4px rgba(11,108,99,.5);
+  }
   @media (prefers-color-scheme: dark) {
-    .bar.now .d { background:color-mix(in srgb, var(--ink) 26%, transparent); }
-    .bar.now .d.lit { background:#7CF3E2; box-shadow:0 0 10px 4px rgba(124,243,226,.8); }
+    .bar.now { background:color-mix(in srgb, var(--teal) 34%, var(--panel)); }
+    .bar.now .d { background:color-mix(in srgb, #7CF3E2 22%, transparent); }
+    .bar.now .d.lit {
+      background:#B8FFF4;
+      box-shadow:0 0 0 2.5px rgba(16,50,46,.85), 0 0 12px 4px rgba(184,255,244,.55);
+    }
   }
 
   .play {
@@ -657,6 +670,12 @@
       e.stopPropagation();
       emptySlot(slot);
     });
+    // Wake the audio before asking for a sound, every single time. Leaving this out is what
+    // silenced the very first note a child places: on iOS the first sound of a session has to
+    // come out of a gesture that has actually opened the context, and going straight to
+    // playSustainedNote does not open it. Pressing play opened it, which is why everything
+    // sounded from then on.
+    unlockAudio();
     // sound first, drawing second - a note the child is waiting to hear has no business
     // depending on anything rendering successfully
     playSustainedNote(noteFreq(key), 0.85, (slot.dur * beatMs()) / 1000);
