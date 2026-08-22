@@ -205,17 +205,6 @@
   .gate-btn:active { transform:scale(.97); }
   .gate-note { font-size:13px; color:var(--ink-soft); }
 
-  .astat {
-    margin-top:7px; padding:7px 10px; border-radius:9px; text-align:center;
-    font-size:12.5px; font-weight:700; line-height:1.5;
-    background:color-mix(in srgb, var(--paper-2) 75%, transparent); color:var(--ink-soft);
-  }
-  .astat.ok { background:color-mix(in srgb, #2F9E6B 20%, transparent); color:#1B6A47; }
-  .astat.bad { background:color-mix(in srgb, var(--miss) 20%, transparent); color:#8E2D40; }
-  @media (prefers-color-scheme: dark) {
-    .astat.ok { color:#8CE8BC; } .astat.bad { color:#FFB3C0; }
-  }
-
   .diag { margin-top:9px; padding:7px 9px; border-radius:8px; background:#241F3D; color:#7CF3E2;
     font:12px/1.5 ui-monospace,Menlo,Consolas,monospace; direction:ltr; text-align:left; white-space:pre; }
 
@@ -355,10 +344,6 @@
     <svg class="ico ico-stop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>
     <span class="btn-label">נגן</span>
   </button>
-
-  <!-- temporary, for this round of testing only: says out loud what the audio engine did, so
-       nobody has to open a debug address or take a screenshot to report it -->
-  <div class="astat" id="astat">מנוע השמע: טרם נוצר</div>
 
   <button class="more-btn" id="btnMore">עוד ⋯</button>
   <div class="more" id="more">
@@ -694,42 +679,16 @@
   ["touchstart", "touchend", "pointerdown", "pointerup", "mousedown", "click"]
     .forEach(e => document.addEventListener(e, keepPriming, { capture: true, passive: true }));
 
-  // ---------- say out loud what the audio is doing ----------
-  // Temporary, and on the page rather than behind ?debug, because two rounds of "still no
-  // sound" have gone by without the one fact that would settle it. Reading a line out is
-  // easier than taking a screenshot, so this asks for the least possible from the tester.
+  // ---------- preview-only trace, ?debug=1 ----------
   const DIAG = /[?&]debug=1/.test(location.search);
   const TRACE = [];
-  const astat = document.getElementById("astat");
-  const HEB = { running: "ער", suspended: "מושהה", interrupted: "נלקח", closed: "סגור" };
-  let lastAsk = null, lastAskState = null;
-  function stateOf() { return audioCtx ? audioCtx.state : null; }
-  function showAudio() {
-    if (!astat) return;
-    const s = stateOf();
-    const now = s ? (HEB[s] || s) : "טרם נוצר";
-    let line = "מנוע השמע: " + now;
-    if (lastAsk) line += " · הצליל האחרון התבקש כשהמנוע היה: " + (HEB[lastAskState] || lastAskState || "טרם נוצר");
-    astat.textContent = line;
-    astat.className = "astat" + (s === "running" ? " ok" : s ? " bad" : "");
-  }
-  function trace(s) { TRACE.push(s); while (TRACE.length > 6) TRACE.shift(); }
-  (function wrapAudio() {
+  function trace(s) { if (!DIAG) return; TRACE.push(s); while (TRACE.length > 6) TRACE.shift(); }
+  if (DIAG) {
     const _unlock = unlockAudio, _sustain = playSustainedNote;
-    unlockAudio = function () {
-      const before = stateOf();
-      _unlock();
-      trace("wake " + (before || "none") + " -> " + (stateOf() || "none"));
-      showAudio();
-    };
-    playSustainedNote = function (f, v, t) {
-      lastAsk = true; lastAskState = stateOf();
-      trace("note @ " + (lastAskState || "none"));
-      showAudio();
-      return _sustain(f, v, t);
-    };
-  })();
-  setInterval(showAudio, 400);
+    const st = () => (audioCtx ? audioCtx.state : "none");
+    unlockAudio = function () { const b = st(); _unlock(); trace("wake " + b + " -> " + st()); };
+    playSustainedNote = function (f, v, t) { trace("note @ " + st()); return _sustain(f, v, t); };
+  }
 
   // ---------- build ----------
   const chipEls = {};
