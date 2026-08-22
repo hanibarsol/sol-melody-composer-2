@@ -586,6 +586,34 @@
   const slots = [];   // in playing order: { dur, key, el, dots, barEl, numEl }
   let playing = false, playTimer = null, dotTimers = [];
 
+  // ---------- keep asking the audio to wake ----------
+  // The engine's own prime listeners take themselves off the moment the context reports
+  // "running" - and Safari will report that while still producing silence, so the listeners
+  // leave and nothing is left watching for the gesture that would really open it. That is the
+  // shape of the bug seen here twice: every placement silent, then the play button lands a
+  // real click, and every placement after it sounds. So keep priming on every gesture for as
+  // long as the page is open. It costs one throwaway one-sample buffer, throttled.
+  let lastPrime = 0;
+  function keepPriming() {
+    const now = Date.now();
+    if (now - lastPrime < 250) return;
+    lastPrime = now;
+    unlockAudio();
+  }
+  ["touchstart", "touchend", "pointerdown", "pointerup", "mousedown", "click"]
+    .forEach(e => document.addEventListener(e, keepPriming, { capture: true, passive: true }));
+
+  // ---------- preview-only trace, so a third guess is not needed ----------
+  const DIAG = /[?&]debug=1/.test(location.search);
+  const TRACE = [];
+  function trace(s) { if (!DIAG) return; TRACE.push(s); while (TRACE.length > 6) TRACE.shift(); }
+  if (DIAG) {
+    const _unlock = unlockAudio, _sustain = playSustainedNote;
+    const st = () => (audioCtx ? audioCtx.state : "none");
+    unlockAudio = function () { const b = st(); _unlock(); trace("wake " + b + " -> " + st()); };
+    playSustainedNote = function (f, v, t) { trace("note @ " + st()); return _sustain(f, v, t); };
+  }
+
   // ---------- build ----------
   const chipEls = {};
   ORDER.forEach(key => {
@@ -829,7 +857,6 @@
   });
 
   // ---------- preview-only readout, ?debug=1 ----------
-  const DIAG = /[?&]debug=1/.test(location.search);
   if (DIAG && els.diag) {
     els.diag.hidden = false;
     setInterval(() => {
@@ -837,8 +864,9 @@
       els.diag.textContent =
         "content " + page.offsetHeight + "px   window " + window.innerHeight + "px   " +
         (page.offsetHeight <= window.innerHeight ? "FITS" : "OVERFLOWS by " + (page.offsetHeight - window.innerHeight)) + "\n" +
-        "filled " + slots.filter(s => s.key).length + "/" + slots.length + "   playing " + playing + "\n" +
-        "audio " + (audioCtx ? audioCtx.state : "not created");
+        "filled " + slots.filter(s => s.key).length + "/" + slots.length + "   playing " + playing +
+        "   audio " + (audioCtx ? audioCtx.state : "not created") + "\n" +
+        "----\n" + (TRACE.length ? TRACE.join("\n") : "(no sound asked for yet)");
     }, 250);
   }
 })();
