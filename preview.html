@@ -608,11 +608,38 @@
   // shape of the bug seen here twice: every placement silent, then the play button lands a
   // real click, and every placement after it sounds. So keep priming on every gesture for as
   // long as the page is open. It costs one throwaway one-sample buffer, throttled.
+  // And asking politely is not enough. Tested on the phone: the context reports "suspended"
+  // going into a placement and "suspended" coming out of it, every time, no matter how many
+  // gesture types call resume() - and then one click on the play button opens it and everything
+  // sounds from then on. resume() is simply not what Safari is waiting for here.
+  //
+  // What it is waiting for is media actually playing. Playing a real (silent) audio element
+  // from inside the gesture opens the phone's audio route, and once that route is open the
+  // context resumes. This is the old, unglamorous unlock, and it is here because the polite
+  // one has now failed four times.
+  const SILENT_WAV = "data:audio/wav;base64,UklGRqQCAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YYACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  let silentEl = null;
+  function openAudioRoute() {
+    try {
+      if (!silentEl) {
+        silentEl = document.createElement("audio");
+        silentEl.setAttribute("playsinline", "");
+        silentEl.setAttribute("preload", "auto");
+        silentEl.volume = 0.01;
+        silentEl.src = SILENT_WAV;
+      }
+      silentEl.currentTime = 0;
+      const p = silentEl.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+  }
+
   let lastPrime = 0;
   function keepPriming() {
     const now = Date.now();
     if (now - lastPrime < 250) return;
     lastPrime = now;
+    openAudioRoute();
     unlockAudio();
   }
   ["touchstart", "touchend", "pointerdown", "pointerup", "mousedown", "click"]
@@ -739,11 +766,9 @@
       e.stopPropagation();
       emptySlot(slot);
     });
-    // Wake the audio before asking for a sound, every single time. Leaving this out is what
-    // silenced the very first note a child places: on iOS the first sound of a session has to
-    // come out of a gesture that has actually opened the context, and going straight to
-    // playSustainedNote does not open it. Pressing play opened it, which is why everything
-    // sounded from then on.
+    // still inside the pointerup that dropped this character, so this is the last chance in
+    // the gesture to get the audio route open before asking for a sound
+    openAudioRoute();
     unlockAudio();
     // sound first, drawing second - a note the child is waiting to hear has no business
     // depending on anything rendering successfully
