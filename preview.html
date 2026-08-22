@@ -1,331 +1,153 @@
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>צרו מנגינה משלכם – חלק 2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>צרו מנגינה משלכם · חלק 2</title>
 <style>
   :root {
-    --paper: #EAF3EF; --paper-2: #DEEEE7; --ink: #241F3D; --ink-soft: rgba(36,31,61,0.62);
-    --panel: #FFFFFF; --panel-border: rgba(36,31,61,0.10); --shadow: 0 10px 28px rgba(36,31,61,0.14);
-    --accent-gold: #C98626; --accent-teal: #14766A; --accent-coral: #C94D64; --accent-sky: #3E7AB0;
-    --good: #2F9E6B; --miss: #C94D64; --staff-line: rgba(36,31,61,0.30); --bar-line: rgba(36,31,61,0.55);
-    --n-do:#3E7AB0; --n-re:#7C64A8; --n-mi:#C94D64; --n-fa:#C1811F; --n-sol:#10685E; --n-la:#8E7048; --n-si:#453A78;
-    --radius-lg: 22px; --radius-md: 14px; --radius-sm: 9px;
+    --paper:#EAF3EF; --paper-2:#DEEEE7; --panel:#fff; --panel-border:rgba(36,31,61,.14);
+    --ink:#241F3D; --ink-soft:rgba(36,31,61,.62); --teal:#17A79B; --led:#6fd6c9;
+    --gold:#E8A33D; --miss:#C94D64;
+    --n-do:#3E7AB0; --n-re:#7C64A8; --n-mi:#C94D64; --n-fa:#C1811F;
+    --n-sol:#10685E; --n-la:#8E7048; --n-si:#453A78;
+    --shadow:0 6px 18px rgba(36,31,61,.14);
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --paper: #161327; --paper-2: #1D1832; --ink: #F1ECE0; --ink-soft: rgba(241,236,224,0.66);
-      --panel: #211C38; --panel-border: rgba(241,236,224,0.14); --shadow: 0 10px 30px rgba(0,0,0,0.45);
-      --accent-gold: #F0B04C; --accent-teal: #3FC4B4; --accent-coral: #F17F92; --accent-sky: #7FB4E6;
-      --good: #52D08C; --miss: #FF8FA0; --staff-line: rgba(241,236,224,0.30); --bar-line: rgba(241,236,224,0.55);
-      --n-do:#7FB4E6; --n-re:#AE99D9; --n-mi:#F17F92; --n-fa:#F0B04C; --n-sol:#3FC4B4; --n-la:#C6A67B; --n-si:#9086D6;
-    }
-  }
-  :root[data-theme="dark"] {
-    --paper: #161327; --paper-2: #1D1832; --ink: #F1ECE0; --ink-soft: rgba(241,236,224,0.66);
-    --panel: #211C38; --panel-border: rgba(241,236,224,0.14); --shadow: 0 10px 30px rgba(0,0,0,0.45);
-    --accent-gold: #F0B04C; --accent-teal: #3FC4B4; --accent-coral: #F17F92; --accent-sky: #7FB4E6;
-    --good: #52D08C; --miss: #FF8FA0; --staff-line: rgba(241,236,224,0.30); --bar-line: rgba(241,236,224,0.55);
-    --n-do:#7FB4E6; --n-re:#AE99D9; --n-mi:#F17F92; --n-fa:#F0B04C; --n-sol:#3FC4B4; --n-la:#C6A67B; --n-si:#9086D6;
-  }
-  :root[data-theme="light"] {
-    --paper: #EAF3EF; --paper-2: #DEEEE7; --ink: #241F3D; --ink-soft: rgba(36,31,61,0.62);
-    --panel: #FFFFFF; --panel-border: rgba(36,31,61,0.10); --shadow: 0 10px 28px rgba(36,31,61,0.14);
-    --accent-gold: #C98626; --accent-teal: #14766A; --accent-coral: #C94D64; --accent-sky: #3E7AB0;
-    --good: #2F9E6B; --miss: #C94D64; --staff-line: rgba(36,31,61,0.30); --bar-line: rgba(36,31,61,0.55);
-    --n-do:#3E7AB0; --n-re:#7C64A8; --n-mi:#C94D64; --n-fa:#C1811F; --n-sol:#10685E; --n-la:#8E7048; --n-si:#453A78;
-  }
-
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  @media (prefers-color-scheme: dark) { :root {
+    --paper:#161327; --paper-2:#1D1832; --panel:#241F3D; --panel-border:rgba(241,236,224,.16);
+    --ink:#F1ECE0; --ink-soft:rgba(241,236,224,.66);
+    --n-do:#7FB4E6; --n-re:#AE99D9; --n-mi:#F17F92; --n-fa:#F0B04C;
+    --n-sol:#3FC4B4; --n-la:#C6A67B; --n-si:#9086D6;
+  } }
+  * { box-sizing:border-box; }
+  html, body { overflow-x:hidden; }
   body {
-    background: radial-gradient(1200px 500px at 15% -10%, var(--paper-2), transparent), var(--paper);
-    color: var(--ink); font-family: "Segoe UI", Arial, "Noto Sans Hebrew", sans-serif;
-    direction: rtl; min-height: 100vh;
+    margin:0; background:var(--paper); color:var(--ink); direction:rtl;
+    font-family:"Segoe UI",system-ui,sans-serif; -webkit-text-size-adjust:100%;
+    -webkit-tap-highlight-color:transparent;
   }
-  button { -webkit-tap-highlight-color: transparent; user-select: none; font-family: inherit; }
-  .app { max-width: 1040px; margin: 0 auto; padding: 22px 18px 60px; }
-  h1,h2,h3 { margin: 0; text-wrap: balance; }
-  .eyebrow {
-    display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .02em;
-    color: var(--accent-teal); background: color-mix(in srgb, var(--accent-teal) 12%, transparent);
-    padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
-  }
-  .title { font-size: clamp(24px, 4vw, 36px); font-weight: 800; position: relative; display: inline-block; padding-bottom: 8px; }
-  .title::after {
-    content: ""; position: absolute; right: 0; left: 0; bottom: 0; height: 6px;
-    background-image: repeating-linear-gradient(90deg, var(--accent-teal) 0 22px, transparent 22px 30px);
-    border-radius: 3px; opacity: .55;
-  }
-  .subtitle { color: var(--ink-soft); font-size: 15px; margin-top: 10px; max-width: 66ch; line-height: 1.55; }
+  /* Locked width. Without it a layout drawn for a phone stretches across a desktop window,
+     the characters go soft and the screen reads as empty. */
+  .page { max-width:430px; margin:0 auto; padding:10px 8px 14px; }
+  .head { text-align:center; padding-left:52px; min-height:44px; }
+  .head b { font-size:17px; font-weight:800; }
+  .head span { display:block; font-size:11.5px; color:var(--ink-soft); margin-top:1px; }
 
-  .panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 18px; margin-top: 18px; }
-  .panel h3 { font-size: 14px; color: var(--ink-soft); margin-bottom: 10px; }
+  /* the whole family stays visible together - this is not negotiable */
+  .cast { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 7px; margin-top:8px; }
+  .chip {
+    width:64px; display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:none; border:none; padding:0; color:var(--ink); cursor:grab; touch-action:none;
+  }
+  .chip:active { cursor:grabbing; }
+  .chip-av {
+    width:64px; height:64px; border-radius:50%; overflow:hidden; background:var(--panel);
+    border:3px solid var(--ring); box-shadow:var(--shadow);
+    display:flex; align-items:flex-end; justify-content:center;
+    transition:transform .12s ease; pointer-events:none;
+  }
+  .chip.lifted .chip-av { transform:translateY(-4px) scale(1.06); }
+  .chip-av img { width:100%; height:118%; object-fit:cover; object-position:center top; pointer-events:none; }
+  .chip-name { font-size:12.5px; font-weight:700; pointer-events:none; }
 
-  .cast { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
-  .cast-chip {
-    flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
-    background: none; border: none; cursor: grab; padding: 4px; border-radius: var(--radius-md);
-    touch-action: none; color: var(--ink);
+  .bars { margin-top:10px; display:flex; flex-direction:column; gap:7px; }
+  .bar {
+    position:relative; background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:12px; padding:9px 9px 3px; box-shadow:var(--shadow);
+    transition:box-shadow .15s ease;
   }
-  .cast-chip:active { cursor: grabbing; }
-  .cast-avatar {
-    width: 72px; height: 72px; border-radius: 50%; background: var(--panel);
-    border: 3px solid var(--ring, var(--accent-teal)); overflow: hidden; box-shadow: var(--shadow);
-    display: flex; align-items: flex-end; justify-content: center; transition: transform .12s ease;
-    pointer-events: none;
+  .bar.now { box-shadow:0 0 0 2px var(--gold), var(--shadow); }
+  .bar-num {
+    position:absolute; top:5px; right:7px; width:18px; height:18px; border-radius:50%;
+    background:color-mix(in srgb, var(--ink) 9%, transparent); color:var(--ink-soft);
+    font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;
   }
-  .cast-chip:hover .cast-avatar { transform: translateY(-3px) scale(1.05); }
-  .cast-avatar img { width: 100%; height: 118%; object-fit: cover; object-position: center top; pointer-events: none; }
-  .cast-name { font-size: 14.5px; font-weight: 700; pointer-events: none; }
+  .bar-num.now { background:var(--gold); color:#241F3D; }
+  .bar-label { text-align:center; font-size:10.5px; color:var(--ink-soft); padding:1px 0 3px; }
+  /* Every bar the same width, each slot taking the share its beats are worth - so the row
+     length says what the circle size says, and four quarters visibly equal one whole. */
+  .bar-body { display:flex; align-items:flex-end; direction:ltr; }
+  .share {
+    flex:var(--share) 1 0; display:flex; flex-direction:column; align-items:center; gap:4px;
+    border-left:1px dashed color-mix(in srgb, var(--ink) 13%, transparent); min-width:0;
+  }
+  .share:first-child { border-left:none; }
 
-  .workbench-title { text-align: center; margin-top: 20px; color: var(--ink-soft); font-size: 15px; font-weight: 700; }
-  .workbench-arrow { text-align: center; font-size: 20px; line-height: 1; color: var(--ink); margin-top: 4px; transition: color .2s ease; }
-  /* Step 2 already had a hint and step 1 had none, so a child arrived at a screen with
-     nothing pulling the eye towards the very first thing to do. Same language as step 2: the
-     character shows you where it is going, the target breathes, no words. */
-  .workbench-arrow.on { color: #6fd6c9; animation: arrowBob 1.25s ease-in-out infinite; }
-  .dur-socket.hint-target {
-    border-style: dashed !important;
-    animation: socketBreathe 1.7s ease-in-out infinite;
+  .slot {
+    position:relative; border-radius:50%; flex:0 0 auto;
+    border:3px dashed color-mix(in srgb, var(--led) 75%, transparent);
+    background:color-mix(in srgb, var(--paper-2) 55%, transparent);
+    box-shadow:0 0 0 1.5px rgba(36,31,61,.10), 0 0 12px 3px rgba(111,214,201,.30);
+    animation:drift 3.4s ease-in-out infinite; touch-action:none;
   }
-  /* pulse the ring rather than its shadow: the nest already carries a white glow that
-     says "empty and waiting", and overwriting box-shadow here put that out on every beat */
-  @keyframes socketBreathe {
-    0%, 100% { border-color: color-mix(in srgb, #6fd6c9 45%, transparent); transform: scale(1); }
-    50%      { border-color: #6fd6c9; transform: scale(1.07); }
+  /* Gentle on purpose. A target that runs away is a wall to a four-year-old, not a game -
+     the drift is charm, and the magnet below is what actually catches the drop. */
+  @keyframes drift {
+    0%,100% { transform:translate(0,0) rotate(0deg); }
+    30%     { transform:translate(2px,-5px) rotate(-2deg); }
+    65%     { transform:translate(-2px,3px) rotate(2deg); }
   }
-  .cast-chip.hint-source .cast-avatar { animation: sourceNudge 1.7s ease-in-out infinite; }
-  @keyframes sourceNudge {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-5px) scale(1.06); }
+  .slot.armed { border-color:var(--led); box-shadow:0 0 0 1.5px rgba(36,31,61,.10), 0 0 16px 6px rgba(111,214,201,.75); }
+  .slot.filled {
+    border-style:solid; border-color:var(--ring); background:var(--panel);
+    box-shadow:0 0 10px 2px rgba(111,214,201,.45), var(--shadow);
+    animation:drift 3.4s ease-in-out infinite, pop .4s ease;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .workbench-arrow.on, .dur-socket.hint-target, .cast-chip.hint-source .cast-avatar { animation: none; }
+  @keyframes pop { 0%{transform:scale(.5)} 60%{transform:scale(1.16)} 100%{transform:scale(1)} }
+  .slot.playing { box-shadow:0 0 0 4px color-mix(in srgb, var(--gold) 65%, transparent), var(--shadow); }
+  .slot-av { position:absolute; inset:0; border-radius:50%; overflow:hidden; display:flex; align-items:flex-end; justify-content:center; }
+  .slot-av img { width:100%; height:118%; object-fit:cover; object-position:center top; pointer-events:none; }
+  .rm {
+    position:absolute; top:-7px; right:-7px; width:20px; height:20px; border-radius:50%;
+    background:var(--miss); color:#fff; border:2px solid var(--panel); font-size:12px;
+    line-height:1; padding:0; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.35); z-index:3; cursor:pointer;
   }
-  .workbench { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; align-items: flex-end; min-height: 80px; padding-top: 46px; margin-top: 4px; }
-  .socket-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .beat-dots { display: flex; gap: 6px; height: 10px; align-items: center; }
-  .beat-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-border); transition: background .12s ease, transform .12s ease; }
-  .beat-dot.lit { background: #6fd6c9; transform: scale(1.3); box-shadow: 0 0 6px rgba(111,214,201,0.75); }
-  /* Empty nests look like a lit white LED ring set in a dark housing (like an indicator ring
-     on a household appliance) — the housing stays dark regardless of light/dark page theme,
-     since a real LED bezel doesn't change with room lighting either. */
-  /* A pure white glow disappears against this light background — no contrast to glow against.
-     A thin dark contour right under the white ring gives it an edge to read against, while the
-     white blur still spreads outward around that for the "lit" feel. */
-  .dur-socket {
-    position: relative; border-radius: 50%; border: 3px solid #fff;
-    background: color-mix(in srgb, var(--paper-2) 55%, transparent);
-    box-shadow: 0 0 0 1.5px rgba(36,31,61,.22), 0 0 10px 3px rgba(255,255,255,.95), 0 2px 6px rgba(36,31,61,.12);
-    display: flex; align-items: flex-end; justify-content: center;
-    touch-action: none; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
-  }
-  .dur-socket.dragover { border-color: #6fd6c9; box-shadow: 0 0 12px 4px rgba(111,214,201,.75); transform: scale(1.08); }
-  .dur-socket.filled {
-    /* once "lit" with a character, the contour matches the piano project's LED teal
-       (#6fd6c9) rather than the character's own color — the ring itself becomes the LED */
-    border-style: solid; border-color: #6fd6c9;
-    box-shadow: 0 0 10px 3px rgba(111,214,201,.75), var(--shadow);
-    background: var(--panel);
-    cursor: grab; animation: socketPop .35s ease;
-  }
-  .dur-socket.filled:active { cursor: grabbing; }
-  .dur-socket .socket-avatar { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: block; }
-  .dur-socket .socket-avatar img { width: 100%; height: 118%; object-fit: cover; object-position: center top; pointer-events: none; }
-  @keyframes socketPop { 0% { transform: scale(.55); } 60% { transform: scale(1.14); } 100% { transform: scale(1); } }
-  .bounce-hint { animation: chipBounce .4s ease; }
-  @keyframes chipBounce { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-8px); } 55% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
-  .road-wrap { direction: ltr; overflow-x: auto; overflow-y: hidden; border-radius: var(--radius-md); margin-top: 16px; }
-  /* PHONE: the staff breaks out of the app + panel padding so the child gets ~98px more
-     staff instead of white margin. The page padding itself stays put (the home button still
-     owns its corner) - only this one strip reaches wider, and it sits far below the button. */
-  @media (max-width: 640px) {
-    .road-wrap { margin-left: -70px; margin-right: -28px; }
-    .road { min-width: 0; }
-  }
-  .road {
-    direction: ltr; position: relative; min-width: 640px; height: 360px;
-    background: var(--paper-2);
-    border-radius: var(--radius-md); border: 1px dashed var(--panel-border);
-  }
-  .road.needs-duration { animation: roadNudge .3s ease; border-color: var(--miss); }
-  @keyframes roadNudge { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-  .road-staff { position: absolute; inset: 14px 0; z-index: 0; pointer-events: none; }
-  .road-inner { position: absolute; inset: 14px 0; z-index: 1; }
-  .staff-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--staff-line); }
-  .bar-line { position: absolute; top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--bar-line); }
+  .rm::after { content:""; position:absolute; inset:-11px; border-radius:50%; }
 
-  .road-placeholder {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: var(--ink-soft); font-size: 15px; text-align: center; padding: 0 24px; pointer-events: none; z-index: 2;
-  }
-  .playhead {
-    position: absolute; top: 6px; bottom: 6px; width: 3px; border-radius: 3px;
-    background: var(--accent-gold); box-shadow: 0 0 10px color-mix(in srgb, var(--accent-gold) 60%, transparent);
-    opacity: 0; transition: left .12s linear;
-  }
-  .measure-zone {
-    position: absolute; top: 0; bottom: 0; border-radius: var(--radius-sm);
-    background: transparent; transition: background .12s ease; pointer-events: none;
-  }
-  /* every other measure gets a faint wash, so the eye reads "box, box, box" even when only
-     one of them fits on screen */
-  .measure-zone.alt { background: color-mix(in srgb, var(--ink) 5%, transparent); }
-  .measure-zone.dragover { background: color-mix(in srgb, #6fd6c9 18%, transparent); }
-  /* the measure currently sounding */
-  .measure-zone.now { background: color-mix(in srgb, var(--accent-gold) 15%, transparent); }
-  .measure-num {
-    position: absolute; top: 2px; width: 19px; height: 19px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 800; color: var(--ink-soft);
-    background: color-mix(in srgb, var(--ink) 9%, transparent);
-    pointer-events: none; z-index: 2; transition: background .15s ease, color .15s ease;
-  }
-  .measure-num.now { background: var(--accent-gold); color: #241F3D; }
-  /* A note is never rejected: if the measure you aimed at is full, it lands in the next one.
-     On a phone that next measure is off screen, so from the child's side the note simply
-     vanished. These two flashes are the answer to "where did it go?" - the measure it landed
-     in is scrolled into view and lights up for a moment. */
-  .measure-zone.landed { animation: landedZone .9s ease; }
-  .measure-num.landed { animation: landedNum .9s ease; }
-  @keyframes landedZone {
-    0%   { background: color-mix(in srgb, #6fd6c9 42%, transparent); }
-    70%  { background: color-mix(in srgb, #6fd6c9 24%, transparent); }
-    100% { background: transparent; }
-  }
-  @keyframes landedNum {
-    0%   { transform: scale(1.7); background: #6fd6c9; color: #241F3D; }
-    60%  { transform: scale(1.15); background: #6fd6c9; color: #241F3D; }
-    100% { transform: scale(1); }
-  }
-  /* ---- "now carry it down to a box" ----
-     A child who has just filled a nest has no way of knowing the note is meant to travel
-     down to the staff. Two cues, no words, because half of them cannot read yet: a
-     see-through copy of their own character glides down the exact path, and the box it is
-     headed for breathes. Both stop for good the moment one note gets placed. */
-  .drop-ghost {
-    position: fixed; left: 0; top: 0; z-index: 30; opacity: 0;
-    border-radius: 50%; background: var(--panel);
-    border: 3px solid var(--ring, var(--accent-teal));
-    box-shadow: 0 0 0 4px color-mix(in srgb, #6fd6c9 32%, transparent), var(--shadow);
-    pointer-events: none;
-  }
-  .drop-ghost .road-note-avatar {
-    width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
-    display: flex; align-items: flex-end; justify-content: center;
-  }
-  .drop-ghost img { width: 100%; height: 118%; object-fit: cover; object-position: center top; }
-  .measure-zone.hint-target {
-    outline: 3px dashed #6fd6c9; outline-offset: -5px; border-radius: var(--radius-sm);
-    animation: hintBreathe 1.7s ease-in-out infinite;
-  }
-  @keyframes hintBreathe {
-    0%, 100% { outline-color: color-mix(in srgb, #6fd6c9 35%, transparent); background: color-mix(in srgb, #6fd6c9 6%, transparent); }
-    50%      { outline-color: #6fd6c9; background: color-mix(in srgb, #6fd6c9 17%, transparent); }
-  }
-  .drop-arrow { display: none; justify-content: center; margin: 4px 0 -8px; }
-  .drop-arrow.on { display: flex; }
-  .drop-arrow svg { width: 30px; height: 30px; color: #6fd6c9; animation: arrowBob 1.25s ease-in-out infinite; }
-  @keyframes arrowBob { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(8px); opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) {
-    .measure-zone.hint-target, .drop-arrow svg { animation: none; }
-    .measure-zone.hint-target { background: color-mix(in srgb, #6fd6c9 14%, transparent); }
-  }
-  .road-note.just-landed { animation: notePop .5s ease; }
-  @keyframes notePop { 0% { transform: scale(.45); } 62% { transform: scale(1.22); } 100% { transform: scale(1); } }
-  /* 4 dots per measure showing how much of it is still free, reusing the same LED-dot language
-     as the nests — starts fully lit, and one dot goes dark for every beat that gets filled. */
-  .measure-quota {
-    position: absolute; top: 4px; height: 10px; display: flex; gap: 8px;
-    align-items: center; justify-content: center; pointer-events: none; z-index: 2;
-  }
+  .dots { display:flex; gap:4px; height:9px; align-items:center; }
+  .d { width:7px; height:7px; border-radius:50%; background:color-mix(in srgb, var(--led) 40%, transparent); transition:background .12s ease, transform .12s ease; }
+  .d.lit { background:var(--led); transform:scale(1.25); box-shadow:0 0 6px rgba(111,214,201,.8); }
 
-  .road-note {
-    position: absolute; border-radius: 50%; background: var(--panel); border: 3px solid var(--ring, var(--accent-teal));
-    box-shadow: var(--shadow); transition: box-shadow .15s ease;
-    touch-action: none;
+  .play {
+    margin-top:10px; width:100%; min-height:56px; border:none; border-radius:999px;
+    background:var(--teal); color:#fff; font-size:18px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:var(--shadow); cursor:pointer; transition:transform .1s ease;
   }
-  .road-note.playing { transform: scale(1.15); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-gold) 55%, transparent), var(--shadow); z-index: 2; }
-  .road-note.ledger::before {
-    content: ""; position: absolute; top: 50%; left: -12px; right: -12px; height: 1px;
-    background: var(--staff-line); transform: translateY(-.5px);
-  }
-  .road-note-avatar {
-    width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
-    display: flex; align-items: flex-end; justify-content: center;
-  }
-  .road-note-avatar img { width: 100%; height: 118%; object-fit: cover; object-position: center top; pointer-events: none; }
-  /* quarter notes get a subtle dark tint so they read as visually different from half/whole, not just smaller */
-  .fill-tint { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,.24); mix-blend-mode: multiply; pointer-events: none; }
-  .note-stem { position: absolute; background: #6fd6c9; border-radius: 2px; pointer-events: none; }
-  .road-note .rm {
-    position: absolute; top: -7px; right: -7px; width: 19px; height: 19px; border-radius: 50%;
-    background: var(--miss); color: #fff; border: 2px solid var(--panel); font-size: 12px; line-height: 15px; padding: 0;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.35); z-index: 3;
-  }
-  /* the visible × stays small so it doesn't dominate a 44px note, but the actual tap target is
-     expanded to a touch-friendly ~40px via this invisible halo, for phones/tablets */
-  .road-note .rm::before { content: ""; position: absolute; inset: -11px; }
+  .play:active { transform:scale(.97); }
+  .play svg { width:24px; height:24px; }
+  .play .ico-stop { display:none; }
+  .play.is-playing { background:var(--miss); }
+  .play.is-playing .ico-play { display:none; }
+  .play.is-playing .ico-stop { display:block; }
 
-  /* The controls used to be one flex pile: six buttons of six different widths, sized by how
-     long their words happened to be, wrapping at a different place on every screen. Same
-     visual weight on "play" - pressed constantly - as on "load a melody". Now they are
-     ranked: one big primary action, then even pairs on a real grid, then the settings last
-     and quiet. Nothing inside the game shrank; this is all chrome. */
-  .controls { display: grid; gap: 10px; margin-top: 16px; }
-  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none;
-    border-radius: 999px; padding: 12px 14px; font-size: 14.5px; font-weight: 700; cursor: pointer;
-    color: #fff; background: var(--accent-teal); box-shadow: var(--shadow);
-    transition: transform .1s ease, opacity .15s ease; min-height: 48px; width: 100%;
+  .more-btn {
+    margin-top:7px; width:100%; min-height:38px; border:1px solid var(--panel-border);
+    border-radius:999px; background:var(--panel); color:var(--ink-soft);
+    font-size:13px; font-weight:700; cursor:pointer;
   }
-  .btn:active { transform: scale(.96); }
-  .btn:disabled { opacity: .45; cursor: default; }
-  .btn.secondary { background: var(--panel); color: var(--ink); border: 1px solid var(--panel-border); }
-  .btn.danger { background: var(--miss); }
-  .btn .ico { width: 20px; height: 20px; flex: 0 0 auto; }
-  /* one button, not two: while it plays it turns into stop, so the child is never asked to
-     pick between a live control and a dead one */
-  .btn-play { min-height: 60px; font-size: 18px; }
-  .btn-play .ico { width: 26px; height: 26px; }
-  .btn-play .ico-stop { display: none; }
-  .btn-play.is-playing { background: var(--miss); }
-  .btn-play.is-playing .ico-play { display: none; }
-  .btn-play.is-playing .ico-stop { display: block; }
-  .settings-row {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px 16px;
-    padding: 10px 14px; border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--paper-2) 60%, transparent);
+  .more { display:none; margin-top:7px; padding:9px 12px; border-radius:12px;
+    background:color-mix(in srgb, var(--paper-2) 65%, transparent); }
+  .more.open { display:grid; gap:7px; }
+  .more-row { display:flex; gap:8px; }
+  .more-row .btn {
+    flex:1; min-height:40px; border-radius:999px; border:1px solid var(--panel-border);
+    background:var(--panel); color:var(--ink); font-size:13.5px; font-weight:700; cursor:pointer;
   }
-  .setting { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
-  .setting input[type=range] { accent-color: var(--accent-teal); flex: 1 1 auto; min-width: 0; }
-  .setting b { color: var(--ink); font-variant-numeric: tabular-nums; min-width: 36px; text-align: center; }
-  @media (max-width: 360px) { .btn { font-size: 13.5px; padding: 12px 8px; gap: 6px; } }
+  .more-row .btn.danger { background:var(--miss); color:#fff; border-color:transparent; }
+  .setting { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-soft); }
+  .setting input[type=range] { accent-color:var(--teal); flex:1; min-width:0; }
+  .setting b { color:var(--ink); font-variant-numeric:tabular-nums; min-width:34px; text-align:center; }
 
-  .drag-ghost { position: fixed; width: 52px; height: 52px; border-radius: 50%; pointer-events: none; z-index: 999;
-    border: 3px solid var(--accent-gold); box-shadow: var(--shadow); overflow: hidden; background: var(--panel);
-    display: flex; align-items: flex-end; justify-content: center; opacity: .95; }
-  .drag-ghost img { width: 100%; height: 118%; object-fit: cover; object-position: center top; }
+  .drag-ghost {
+    position:fixed; width:64px; height:64px; border-radius:50%; pointer-events:none; z-index:999;
+    border:3px solid var(--gold); box-shadow:var(--shadow); overflow:hidden; background:var(--panel);
+    display:flex; align-items:flex-end; justify-content:center; opacity:.95;
+  }
+  .drag-ghost img { width:100%; height:118%; object-fit:cover; object-position:center top; }
 
-  .save-modal {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50;
-    align-items: center; justify-content: center; padding: 20px;
-  }
-  .save-modal-box {
-    background: var(--panel); border-radius: var(--radius-lg); box-shadow: var(--shadow);
-    padding: 22px; max-width: 460px; width: 100%; text-align: center;
-  }
-  .save-modal-box h3 { font-size: 18px; margin-bottom: 8px; }
-  .save-modal-box p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
-  .slot-row { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; }
-  .slot-btn {
-    width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--panel-border);
-    background: var(--paper-2); color: var(--ink-soft); font-size: 22px; font-weight: 800;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-  .slot-btn.filled { border-color: var(--accent-teal); background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
-  .slot-btn:disabled { opacity: .35; cursor: default; }
-  .save-modal-actions { display: flex; gap: 10px; justify-content: center; }
+  .diag { margin-top:9px; padding:7px 9px; border-radius:8px; background:#241F3D; color:#7CF3E2;
+    font:12px/1.5 ui-monospace,Menlo,Consolas,monospace; direction:ltr; text-align:left; white-space:pre; }
+
+  @media (prefers-reduced-motion: reduce) { .slot { animation:none; } }
 </style>
 <style>
 /* ---------- Sol home button (unified turquoise) ---------- */
@@ -361,6 +183,59 @@
 /* On a phone the fixed home button sits over this row — reserve its corner
    rather than shrinking anything. */
 @media (max-width: 640px) { .app { padding-left: 60px; } }
+
+/* ---------- Sol lesson navigation (next / previous) ---------- */
+/* Smaller than the home button: it keeps the exact corner, size and colour
+   it holds on every page of the platform, and the arrows read as secondary
+   to it.
+
+   The row sits directly BELOW the home button, not beside it. Beside it was
+   the first choice and it looked right in isolation, but measured against
+   the real pages it covered a control on 6 of 11 lessons, because most
+   lessons put their own control row at exactly that height. The left margin
+   under the home button is empty on every lesson.
+
+   They sit in a row rather than at fixed
+   coordinates each, so a lesson that has only one of them keeps it snug
+   against the home button instead of leaving a hole where the other would
+   have been. The row is forced to LTR so the arrows keep their order on a
+   right-to-left page. */
+.sol-nav {
+    position: fixed;
+    top: 72px;
+    left: 12px;
+    height: 38px;
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    direction: ltr;
+}
+.sol-nav-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #17A79B;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(18, 48, 44, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.sol-nav-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 8px 18px rgba(18, 48, 44, 0.45); }
+.sol-nav-btn:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+.sol-nav-btn svg { width: 20px; height: 20px; }
+@media (max-width: 640px) {
+    .sol-nav { top: 58px; left: 8px; height: 34px; gap: 6px; }
+    .sol-nav-btn { width: 34px; height: 34px; }
+    .sol-nav-btn svg { width: 18px; height: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sol-nav-btn { transition: none; }
+    .sol-nav-btn:hover { transform: none; }
+}
 </style>
 <a class="sol-home-btn" href="https://portal.smoove.io/gsbmtbnbbf1yd87kbofd1/Category?category=qqb" target="_top" aria-label="חזרה למסך הבית">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -368,77 +243,44 @@
         <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
     </svg>
 </a>
-
-
-<div class="app">
-  <div class="eyebrow">מסלול הצלילים · חלק 2</div>
-  <div class="title">צרו מנגינה משלכם</div>
-  <div class="subtitle">גררו דמות אל אחד המעגלים כדי ליצור תו באורך שמתאים לגודל שלו — ואז הניחו אותו למטה בלוח ולחצו על נגן.<br>אהבתם את המנגינה? שמרו אותה<br>או צרו מנגינה חדשה.</div>
-
-  <div class="panel">
-    <h3>המשפחה של סול</h3>
-    <div class="cast" id="castStrip"></div>
-
-    <h3 class="workbench-title">גררו דמות לכאן כדי ליצור תו</h3>
-    <div class="workbench-arrow" id="benchArrow" aria-hidden="true">↓</div>
-    <div class="workbench" id="workbench"></div>
-    <div class="drop-arrow" id="dropArrow" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 4v13" /><path d="M6 12l6 6 6-6" />
-      </svg>
-    </div>
-
-    <div class="road-wrap" id="roadWrap">
-      <div class="road" id="road">
-        <div class="road-staff" id="roadStaff"></div>
-        <div class="road-inner" id="roadInner"></div>
-        <div class="playhead" id="playhead"></div>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button class="btn btn-play" id="btnPlay" aria-label="נגן">
-        <svg class="ico ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>
-        <svg class="ico ico-stop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>
-        <span class="btn-label">נגן</span>
-      </button>
-      <div class="btn-row">
-        <button class="btn secondary" id="btnUndo">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a6 6 0 0 1 0 12h-2"/></svg>
-          <span class="btn-label">הסר אחרון</span>
-        </button>
-        <button class="btn danger" id="btnClear">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9.5 7V4.8h5V7"/><path d="M6.4 7l.9 12.2h9.4L17.6 7"/><path d="M10.2 10.5v6M13.8 10.5v6"/></svg>
-          <span class="btn-label">נקה הכל</span>
-        </button>
-      </div>
-      <div class="btn-row">
-        <button class="btn secondary" id="btnExport">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M8 10.5l4 4 4-4"/><path d="M5 19h14"/></svg>
-          <span class="btn-label">שמרו</span>
-        </button>
-        <button class="btn secondary" id="btnImport">
-          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18V8"/><path d="M8 11.5l4-4 4 4"/><path d="M5 19h14"/></svg>
-          <span class="btn-label">טענו</span>
-        </button>
-      </div>
-      <div class="settings-row">
-        <label class="setting">קצב <input type="range" id="tempo" min="60" max="160" value="90" step="2"><b id="tempoVal">90</b></label>
-        <label class="setting">שמע <input type="range" id="volume" min="0" max="100" value="80" step="5"><b id="volumeVal">80%</b></label>
-      </div>
-    </div>
-  </div>
+<div class="sol-nav">
+  <a class="sol-nav-btn sol-nav-next" href="https://portal.smoove.io/og7b11bd8ftf4p3nmbnb/ContentPage?category=qqb&module=bjiw&page=dobf" target="_top" aria-label="להמשך">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  </a>
+  <a class="sol-nav-btn sol-nav-back" href="https://portal.smoove.io/og7b11bd8ftf4p3nmbnb/ContentPage?category=qqb&module=bjiw&page=dxf6" target="_top" aria-label="אחורה">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  </a>
 </div>
 
-<div class="save-modal" id="saveModal">
-  <div class="save-modal-box">
-    <h3 id="saveModalTitle"></h3>
-    <p id="saveModalHint"></p>
-    <div class="slot-row" id="saveModalSlots"></div>
-    <div class="save-modal-actions">
-      <button class="btn secondary" id="saveModalCancel">סגרו</button>
-    </div>
+<div class="page">
+  <div class="head">
+    <b>צרו מנגינה משלכם</b>
+    <span>הניחו דמות בכל עיגול, ואז נגנו</span>
   </div>
+
+  <div class="cast" id="cast"></div>
+  <div class="bars" id="bars"></div>
+
+  <button class="play" id="btnPlay" aria-label="נגן">
+    <svg class="ico ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.2v13.6L19 12z"/></svg>
+    <svg class="ico ico-stop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>
+    <span class="btn-label">נגן</span>
+  </button>
+
+  <button class="more-btn" id="btnMore">עוד ⋯</button>
+  <div class="more" id="more">
+    <div class="more-row">
+      <button class="btn danger" id="btnClear">נקה הכל</button>
+    </div>
+    <label class="setting">קצב <input type="range" id="tempo" min="60" max="160" value="90" step="2"><b id="tempoVal">90</b></label>
+    <label class="setting">שמע <input type="range" id="volume" min="0" max="100" value="80" step="5"><b id="volumeVal">80%</b></label>
+  </div>
+
+  <div class="diag" id="diag" hidden></div>
 </div>
 
 <script>
@@ -468,32 +310,6 @@
   };
 
   function ringVar(key) { return "var(--n-" + key + ")"; }
-
-  const els = {
-    castStrip: document.getElementById("castStrip"),
-    workbench: document.getElementById("workbench"),
-    dropArrow: document.getElementById("dropArrow"),
-    benchArrow: document.getElementById("benchArrow"),
-    road: document.getElementById("road"),
-    roadWrap: document.getElementById("roadWrap"),
-    roadStaff: document.getElementById("roadStaff"),
-    roadInner: document.getElementById("roadInner"),
-    playhead: document.getElementById("playhead"),
-    btnPlay: document.getElementById("btnPlay"),
-    btnUndo: document.getElementById("btnUndo"),
-    btnClear: document.getElementById("btnClear"),
-    btnExport: document.getElementById("btnExport"),
-    btnImport: document.getElementById("btnImport"),
-    saveModal: document.getElementById("saveModal"),
-    saveModalTitle: document.getElementById("saveModalTitle"),
-    saveModalHint: document.getElementById("saveModalHint"),
-    saveModalSlots: document.getElementById("saveModalSlots"),
-    saveModalCancel: document.getElementById("saveModalCancel"),
-    tempo: document.getElementById("tempo"),
-    tempoVal: document.getElementById("tempoVal"),
-    volume: document.getElementById("volume"),
-    volumeVal: document.getElementById("volumeVal")
-  };
 
   // ---------- audio engine (same synth as the note-highway game) ----------
   function noteFreq(noteKey) {
@@ -702,469 +518,164 @@
     } catch (e) {}
   }
 
-  // ---------- staff geometry (same pitch mapping as part 1) ----------
-  const LINE_GAP = 50;
-  const STEP_PX = LINE_GAP / 2;
-  const STAFF_BOTTOM = 245;
-  function stepY(step) { return STAFF_BOTTOM - step * STEP_PX; }
 
-  function renderStaffLines() {
-    els.roadStaff.innerHTML = "";
-    for (let i = 0; i < 5; i++) {
-      const line = document.createElement("div");
-      line.className = "staff-line";
-      line.style.top = (STAFF_BOTTOM - i * LINE_GAP) + "px";
-      els.roadStaff.appendChild(line);
-    }
-  }
+  // ---------- the bars: three of them, each filled with one note value, and every bar the
+  // same width so four quarters, two halves and one whole visibly measure the same ----------
+  const BARS = [
+    { dur: 1, count: 4, label: "ארבעה רבעים" },
+    { dur: 2, count: 2, label: "שני חצאים" },
+    { dur: 4, count: 1, label: "תו שלם אחד" }
+  ];
+  const SIZE = { 1: 44, 2: 58, 4: 74 };
 
-  // ---------- real measures: each holds up to 4 quarter-beats (4/4 time). A note is NEVER
-  // rejected — if the measure you drop it near is already full, it automatically lands at the
-  // start of the next measure instead. That's the whole teaching mechanism: a child sees "I
-  // added one and it jumped to the next box" instead of being blocked with no explanation, or
-  // having the box silently hold more than 4/4 really allows. ----------
-  // The staff used to open with a 110px treble clef - 38% of a phone screen spent before a
-  // single note showed, on a symbol no child here reads or touches. It is gone; all that is
-  // left is a small gutter so the first bar line is not glued to the edge.
-  const LEFT_GUTTER = 24;
-  const PX_PER_BEAT = 70;
-  const MEASURE_BEATS = 4;
-  const MEASURE_W = PX_PER_BEAT * MEASURE_BEATS;
+  const els = {
+    cast: document.getElementById("cast"),
+    bars: document.getElementById("bars"),
+    btnPlay: document.getElementById("btnPlay"),
+    btnMore: document.getElementById("btnMore"),
+    more: document.getElementById("more"),
+    btnClear: document.getElementById("btnClear"),
+    tempo: document.getElementById("tempo"),
+    tempoVal: document.getElementById("tempoVal"),
+    volume: document.getElementById("volume"),
+    volumeVal: document.getElementById("volumeVal"),
+    diag: document.getElementById("diag")
+  };
 
-  let measures = [[], []]; // each item: {type:'note', key, dur}
-  const workbench = { 1: null, 2: null, 4: null }; // duration -> character key waiting to be placed, or null
-  let playing = false;
-  let playTimer = null;
+  const slots = [];   // in playing order: { dur, key, el, dots, barEl, numEl }
+  let playing = false, playTimer = null, dotTimers = [];
 
-  function beatsUsed(m) { return m.reduce((s, it) => s + it.dur, 0); }
-  function remaining(m) { return MEASURE_BEATS - beatsUsed(m); }
-  function isEmptyMeasure(m) { return m.length === 0; }
-  function measureXStart(i) { return LEFT_GUTTER + i * MEASURE_W; }
-  function measureIndexAtX(x) {
-    let idx = Math.floor((x - LEFT_GUTTER) / MEASURE_W);
-    if (idx < 0) idx = 0;
-    if (idx >= measures.length) idx = measures.length - 1;
-    return idx;
-  }
-
-  // An empty box in front of the music is not a rest here - it is a hole a child made by
-  // dropping their first note slightly to the right, and it made playback appear to begin in
-  // measure 2 with nothing to hear before it. Boxes fill in order: no empty one is allowed to
-  // sit before a box that has music in it.
-  function dropGapsBeforeMusic() {
-    let lastUsed = -1;
-    for (let i = 0; i < measures.length; i++) if (measures[i].length) lastUsed = i;
-    if (lastUsed < 1) return;
-    for (let i = lastUsed - 1; i >= 0; i--) {
-      if (!measures[i].length) measures.splice(i, 1);
-    }
-  }
-
-  function tidyMeasures() {
-    dropGapsBeforeMusic();
-    while (measures.length >= 2 && isEmptyMeasure(measures[measures.length - 1]) && isEmptyMeasure(measures[measures.length - 2])) {
-      measures.pop();
-    }
-    if (measures.length === 0 || !isEmptyMeasure(measures[measures.length - 1])) measures.push([]);
-    if (measures.length < 2) measures.push([]);
-  }
-
-  // Find the first measure at or after startIdx with room for this note's length; if every
-  // measure from there on is full, grow the piece with a fresh one — this is the "auto-advance"
-  // that replaces the old hard rejection.
-  function findMeasureFrom(startIdx, dur) {
-    for (let i = Math.max(0, startIdx); i < measures.length; i++) {
-      if (remaining(measures[i]) >= dur) return i;
-    }
-    measures.push([]);
-    return measures.length - 1;
-  }
-  // Scroll the measure a note just landed in into view and flash it. scrollToMeasure is a
-  // function declaration further down, so it is already hoisted by the time this runs.
-  function revealLanding(mIdx, item) {
-    retireHint(); // they worked it out - stop teaching it
-    // instant, not smooth: a smooth scroll from a drop keeps unwinding for a few hundred
-    // milliseconds and drags the view back off wherever playback just put it
-    scrollToMeasure(mIdx, true);
-    const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + mIdx + '"]');
-    const num = els.roadInner.querySelector('.measure-num[data-measure-index="' + mIdx + '"]');
-    const note = item ? noteEls.get(item) : null;
-    [[zone, "landed"], [num, "landed"], [note, "just-landed"]].forEach(pair => {
-      const el = pair[0], cls = pair[1];
-      if (!el) return;
-      el.classList.remove(cls);
-      void el.offsetWidth; // restart the animation
-      el.classList.add(cls);
-      setTimeout(() => el.classList.remove(cls), 950);
-    });
-  }
-
-  function appendItem(item) {
-    const idx = findMeasureFrom(0, item.dur);
-    measures[idx].push(item);
-    tidyMeasures();
-    renderRoad();
-    revealLanding(idx, item);
-  }
-  function insertNear(targetIdx, item) {
-    const idx = findMeasureFrom(targetIdx, item.dur);
-    measures[idx].push(item);
-    tidyMeasures();
-    renderRoad();
-    const loc = locateItem(item); // collapsing a gap can have moved it a box to the left
-    revealLanding(loc ? loc.mIdx : idx, item);
-    return idx;
-  }
-  function removeItem(mIdx, iIdx) {
-    measures[mIdx].splice(iIdx, 1);
-    tidyMeasures();
-    renderRoad();
-  }
-  function undo() {
-    for (let i = measures.length - 1; i >= 0; i--) {
-      if (measures[i].length) { measures[i].pop(); tidyMeasures(); renderRoad(); return; }
-    }
-  }
-  function clearAll() { measures = [[], []]; renderRoad(); }
-
-  // ---------- size language: bigger picture = plays longer (instead of relying on text) ----------
-  function noteSizeFor(dur) { return dur === 4 ? 74 : dur === 2 ? 58 : 44; }
-  // real-notation cue: quarter/half notes get a stem, whole notes don't (used both on the staff and on the empty nests)
-  function stemHtml(dur, size) {
-    if (dur === 4) return "";
-    // A straight stem meeting a round edge exactly at the tangent point pokes a sliver past the
-    // fill boundary (the circle curves away very gradually near that point, so even a small
-    // vertical buffer barely pulls the boundary back — needs sqrt(2*r*margin), not a linear guess).
-    // Solve for a buffer that keeps a real ~3px clearance from the fill (r_fill = size/2 - 3).
-    const rFill = size / 2 - 3;
-    const buffer = Math.sqrt(2 * rFill * 3);
-    const bottomY = size / 2 - buffer;
-    const h = size * 0.8;
-    const top = (bottomY - h).toFixed(0);
-    return '<span class="note-stem" style="top:' + top + 'px; right:0; width:3px; height:' + h.toFixed(0) + 'px;"></span>';
-  }
-
-  // ---------- cast strip ----------
+  // ---------- build ----------
   const chipEls = {};
   ORDER.forEach(key => {
     const chip = document.createElement("button");
-    chip.className = "cast-chip";
+    chip.className = "chip";
     chip.type = "button";
-    chip.dataset.key = key;
     chip.style.setProperty("--ring", ringVar(key));
-    chip.innerHTML = '<span class="cast-avatar"><img src="' + IMG_SRC[key] + '" alt="' + NOTES[key].name + '"></span><span class="cast-name">' + NOTES[key].name + "</span>";
-    els.castStrip.appendChild(chip);
+    chip.innerHTML = '<span class="chip-av"><img src="' + IMG_SRC[key] + '" alt=""></span>' +
+                     '<span class="chip-name">' + NOTES[key].name + '</span>';
+    els.cast.appendChild(chip);
     chipEls[key] = chip;
-    wireCastChipDrag(chip, key);
+    wireChipDrag(chip, key);
   });
 
-  // ---------- workbench: 3 empty "nests" sized like the notes they'll produce ----------
-  const socketEls = {};
-  const dotEls = {};
-  [1, 2, 4].forEach(dur => {
-    const wrap = document.createElement("div");
-    wrap.className = "socket-wrap";
+  BARS.forEach((spec, bIdx) => {
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const num = document.createElement("div");
+    num.className = "bar-num";
+    num.textContent = String(bIdx + 1);
+    bar.appendChild(num);
 
-    const socket = document.createElement("div");
-    socket.className = "dur-socket";
-    socket.dataset.dur = dur;
-    socket.title = DUR_LABELS[dur];
-    wrap.appendChild(socket);
+    const body = document.createElement("div");
+    body.className = "bar-body";
+    for (let i = 0; i < spec.count; i++) {
+      const share = document.createElement("div");
+      share.className = "share";
+      share.style.setProperty("--share", spec.dur);
 
-    const dotsRow = document.createElement("div");
-    dotsRow.className = "beat-dots";
-    const dots = [];
-    for (let i = 0; i < dur; i++) {
-      const dot = document.createElement("span");
-      dot.className = "beat-dot";
-      dotsRow.appendChild(dot);
-      dots.push(dot);
-    }
-    wrap.appendChild(dotsRow);
+      const slot = document.createElement("div");
+      slot.className = "slot";
+      slot.style.width = SIZE[spec.dur] + "px";
+      slot.style.height = SIZE[spec.dur] + "px";
+      slot.style.animationDelay = (i * 0.7).toFixed(1) + "s";
+      share.appendChild(slot);
 
-    els.workbench.appendChild(wrap);
-    socketEls[dur] = socket;
-    dotEls[dur] = dots;
-    wireSocketDrag(socket, dur);
-  });
-  // ---------- the drop hint ----------
-  let hasPlacedANote = false;
-  let hintTimers = [];
-  let lastFilledCount = 0;
-
-  // Two stages, one language. Stage 1: carry a character from the strip down into a nest.
-  // Stage 2: carry the note that makes down into a box. A child is walked through both by
-  // the same see-through character, and the whole thing retires for good once one note has
-  // been placed - whoever got that far does not need to be told again.
-  function anyNestFilled() { return [1, 2, 4].some(d => workbench[d]); }
-  function stage1Wanted() { return !hasPlacedANote && !playing && !anyNestFilled(); }
-  function stage2Wanted() { return !hasPlacedANote && !playing && anyNestFilled(); }
-  function hintIsWanted() { return stage2Wanted(); }
-  // the whole note: the biggest nest is the easiest target for a small finger, and filling a
-  // whole box in one go is the clearest possible first result
-  const HINT_DUR = 4;
-  function hintSourceKey() { return chipEls.sol ? "sol" : ORDER[0]; }
-  // aim at the measure the note would really land in, so the hint never points at a full box
-  function hintTargetMeasure() {
-    const dur = [4, 2, 1].find(d => workbench[d]) || 1;
-    // deliberately not findMeasureFrom: that one appends a fresh measure when everything is
-    // full, and merely pointing at a box should never grow the piece
-    for (let i = 0; i < measures.length; i++) {
-      if (remaining(measures[i]) >= dur) return i;
-    }
-    return measures.length - 1;
-  }
-  function applyHintTarget() {
-    els.roadInner.querySelectorAll(".measure-zone.hint-target").forEach(z => z.classList.remove("hint-target"));
-    Object.keys(socketEls).forEach(d => socketEls[d].classList.remove("hint-target"));
-    Object.keys(chipEls).forEach(k => chipEls[k].classList.remove("hint-source"));
-
-    const s1 = stage1Wanted(), s2 = stage2Wanted();
-    if (els.benchArrow) els.benchArrow.classList.toggle("on", s1);
-    if (els.dropArrow) els.dropArrow.classList.toggle("on", s2);
-
-    if (s1) {
-      if (socketEls[HINT_DUR]) socketEls[HINT_DUR].classList.add("hint-target");
-      const src = chipEls[hintSourceKey()];
-      if (src) src.classList.add("hint-source");
-      return;
-    }
-    if (!s2) return;
-    const z = els.roadInner.querySelector('.measure-zone[data-measure-index="' + hintTargetMeasure() + '"]');
-    if (z) z.classList.add("hint-target");
-  }
-  function clearHint() {
-    hintTimers.forEach(t => clearTimeout(t));
-    hintTimers = [];
-    document.querySelectorAll(".drop-ghost").forEach(g => g.remove());
-  }
-  function flyGhost(fromEl, toEl, key, size, toWidthCap) {
-    if (ghostEl) return; // never compete with a real finger already dragging
-    if (!fromEl || !toEl) return;
-    const from = fromEl.getBoundingClientRect();
-    const to = toEl.getBoundingClientRect();
-    if (!from.width || !to.width) return;
-    const ghost = document.createElement("div");
-    ghost.className = "drop-ghost";
-    ghost.style.width = size + "px";
-    ghost.style.height = size + "px";
-    ghost.style.setProperty("--ring", ringVar(key));
-    ghost.innerHTML = '<span class="road-note-avatar"><img src="' + IMG_SRC[key] + '" alt=""></span>';
-    document.body.appendChild(ghost);
-    const x0 = from.left + from.width / 2 - size / 2, y0 = from.top + from.height / 2 - size / 2;
-    const x1 = to.left + Math.min(to.width, toWidthCap || to.width) / 2 - size / 2, y1 = to.top + to.height / 2 - size / 2;
-    const at = (x, y, sc) => "translate(" + x + "px, " + y + "px) scale(" + sc + ")";
-    if (typeof ghost.animate !== "function") { ghost.remove(); return; }
-    const anim = ghost.animate([
-      { transform: at(x0, y0, 1), opacity: 0 },
-      { transform: at(x0, y0, 1), opacity: 0.9, offset: 0.14 },
-      { transform: at(x1, y1, 0.95), opacity: 0.9, offset: 0.76 },
-      { transform: at(x1, y1, 0.66), opacity: 0 }
-    ], { duration: 1550, easing: "ease-in-out" });
-    anim.onfinish = () => ghost.remove();
-    anim.oncancel = () => ghost.remove();
-  }
-
-  function flyGhostOnce() {
-    if (stage1Wanted()) {
-      const key = hintSourceKey();
-      const chip = chipEls[key];
-      flyGhost(chip && chip.querySelector(".cast-avatar"), socketEls[HINT_DUR], key, noteSizeFor(HINT_DUR));
-      return;
-    }
-    if (!stage2Wanted()) return;
-    const dur = [4, 2, 1].find(d => workbench[d]);
-    const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + hintTargetMeasure() + '"]');
-    flyGhost(socketEls[dur], zone, workbench[dur], noteSizeFor(dur), 120);
-  }
-  // three passes is enough to read as "do this"; more would nag a child who already got it
-  // Three passes, then a pause, then three more - for as long as the child has not started.
-  // A single showing is easy to miss or to arrive too early for, and the child this is for
-  // may be looking at the wrong half of the screen the one time it plays.
-  function runHintBurst(firstDelay) {
-    clearHint();
-    if (!stage1Wanted() && !stage2Wanted()) return;
-    const start = firstDelay === undefined ? 250 : firstDelay;
-    for (let k = 0; k < 3; k++) hintTimers.push(setTimeout(flyGhostOnce, start + k * 2050));
-    hintTimers.push(setTimeout(() => runHintBurst(0), start + 3 * 2050 + 5000));
-  }
-  function retireHint() {
-    hasPlacedANote = true;
-    clearHint();
-    applyHintTarget();
-  }
-
-  function renderSockets() {
-    [1, 2, 4].forEach(dur => {
-      const socket = socketEls[dur];
-      const size = noteSizeFor(dur);
-      socket.style.width = size + "px";
-      socket.style.height = size + "px";
-      const key = workbench[dur];
-      if (key) {
-        socket.classList.add("filled");
-        socket.style.setProperty("--ring", ringVar(key));
-        const tintMarkup = dur === 1 ? '<span class="fill-tint"></span>' : "";
-        const stemMarkup = stemHtml(dur, size);
-        socket.innerHTML = '<span class="socket-avatar"><img src="' + IMG_SRC[key] + '" alt=""></span>' + tintMarkup + stemMarkup;
-      } else {
-        // empty nest: just the glowing LED ring itself, nothing inside
-        socket.classList.remove("filled");
-        socket.style.removeProperty("--ring");
-        socket.innerHTML = "";
-      }
-    });
-    // a nest that just lit up is exactly the moment the child needs to be told where next
-    const filled = [1, 2, 4].filter(d => workbench[d]).length;
-    if (filled !== lastFilledCount) runHintBurst(); // a nest filling is the stage 1 -> 2 handover
-    lastFilledCount = filled;
-    applyHintTarget();
-  }
-  renderSockets();
-
-  // ---------- render ----------
-  // Placed notes keep their DOM element across renders (looked up by object identity in
-  // noteEls) instead of being torn down and recreated every time — with many notes on the
-  // staff, rebuilding every image + listener on every single add/remove used to add up to
-  // real, noticeable lag. Only the (cheap, image-free) bar lines/zones/quota dots are
-  // rebuilt fully each render; note DOM/listeners are created once and then just repositioned.
-  let noteEls = new Map();
-  function locateItem(item) {
-    for (let mIdx = 0; mIdx < measures.length; mIdx++) {
-      const iIdx = measures[mIdx].indexOf(item);
-      if (iIdx !== -1) return { mIdx: mIdx, iIdx: iIdx };
-    }
-    return null;
-  }
-  function renderRoad() {
-    els.roadInner.querySelectorAll(".bar-line, .measure-zone, .measure-quota, .measure-num").forEach(el => el.remove());
-    const totalW = LEFT_GUTTER + measures.length * MEASURE_W + 20;
-    els.road.style.width = totalW + "px";
-
-    // bar lines: exactly one per real measure boundary, so the grid always matches the content
-    for (let i = 0; i <= measures.length; i++) {
-      const bl = document.createElement("div");
-      bl.className = "bar-line";
-      bl.style.left = measureXStart(i) + "px";
-      els.roadInner.appendChild(bl);
-    }
-
-    const seen = new Set();
-    // playback looks its notes up by data-seq. Nothing ever wrote that attribute, so the
-    // lookup always came back empty and no note has ever lit up while it sounded. This walks
-    // the measures in the same order flattenSequence does, so the numbers line up.
-    let seq = 0;
-    measures.forEach((m, mIdx) => {
-      const zone = document.createElement("div");
-      zone.className = "measure-zone" + (mIdx % 2 === 1 ? " alt" : "");
-      zone.style.left = measureXStart(mIdx) + "px";
-      zone.style.width = MEASURE_W + "px";
-      zone.dataset.measureIndex = mIdx;
-      els.roadInner.appendChild(zone);
-
-      const numBadge = document.createElement("div");
-      numBadge.className = "measure-num";
-      numBadge.style.left = (measureXStart(mIdx) + 7) + "px";
-      numBadge.dataset.measureIndex = mIdx;
-      numBadge.textContent = String(mIdx + 1);
-      els.roadInner.appendChild(numBadge);
-
-      const quotaRow = document.createElement("div");
-      quotaRow.className = "measure-quota";
-      quotaRow.style.left = measureXStart(mIdx) + "px";
-      quotaRow.style.width = MEASURE_W + "px";
-      const beatsLeft = remaining(m);
-      for (let d = 0; d < MEASURE_BEATS; d++) {
+      const dots = document.createElement("div");
+      dots.className = "dots";
+      for (let d = 0; d < spec.dur; d++) {
         const dot = document.createElement("span");
-        dot.className = "beat-dot" + (d < beatsLeft ? " lit" : "");
-        quotaRow.appendChild(dot);
+        dot.className = "d";
+        dots.appendChild(dot);
       }
-      els.roadInner.appendChild(quotaRow);
+      share.appendChild(dots);
+      body.appendChild(share);
 
-      let beatCursor = 0;
-      m.forEach((item) => {
-        seen.add(item);
-        const cx = measureXStart(mIdx) + (beatCursor + item.dur / 2) * PX_PER_BEAT;
-        beatCursor += item.dur;
-
-        const y = stepY(NOTES[item.key].step);
-        const size = noteSizeFor(item.dur);
-        let note = noteEls.get(item);
-        if (!note) {
-          note = document.createElement("div");
-          note.style.setProperty("--ring", ringVar(item.key));
-          const stemMarkup = stemHtml(item.dur, size);
-          const tintMarkup = item.dur === 1 ? '<span class="fill-tint"></span>' : "";
-          note.innerHTML = '<span class="road-note-avatar"><img src="' + IMG_SRC[item.key] + '" alt=""></span>' +
-            tintMarkup + stemMarkup + '<button class="rm" title="הסר">×</button>';
-          note.querySelector(".rm").addEventListener("click", (e) => {
-            e.stopPropagation();
-            const loc = locateItem(item);
-            if (loc) removeItem(loc.mIdx, loc.iIdx);
-          });
-          noteEls.set(item, note);
-        }
-        note.className = "road-note" + (NOTES[item.key].step <= -2 ? " ledger" : "");
-        note.dataset.seq = seq++;
-        note.style.left = cx + "px";
-        note.style.top = y + "px";
-        note.style.width = size + "px";
-        note.style.height = size + "px";
-        note.style.marginLeft = (-size / 2) + "px";
-        note.style.marginTop = (-size / 2) + "px";
-        els.roadInner.appendChild(note);
-      });
-    });
-
-    noteEls.forEach((note, item) => {
-      if (!seen.has(item)) { note.remove(); noteEls.delete(item); }
-    });
-
-    applyHintTarget(); // the zones were just rebuilt, so the breathing box has to be re-marked
-  }
-
-  // ---------- step 1: drag a character from the cast strip onto a "nest" to create a note ----------
-  let ghostEl = null;
-  function bounceEl(el) {
-    el.classList.remove("bounce-hint");
-    void el.offsetWidth; // restart the animation
-    el.classList.add("bounce-hint");
-  }
-  // Play the note sustained for exactly as many beats as its duration, lighting one dot per
-  // beat as it goes — so kids hear AND see "how long" a quarter/half/whole really lasts,
-  // instead of just inferring it from the circle's size.
-  function playBeatCount(key, dur) {
-    unlockAudio();
-    const bpm = Number(els.tempo.value);
-    const beatMs = 60000 / bpm;
-    playSustainedNote(noteFreq(key), 0.85, (dur * beatMs) / 1000);
-    const dots = dotEls[dur];
-    if (!dots) return;
-    dots.forEach(d => d.classList.remove("lit"));
-    for (let i = 0; i < dur; i++) {
-      setTimeout(() => { if (dots[i]) dots[i].classList.add("lit"); }, i * beatMs);
+      slots.push({ dur: spec.dur, key: null, el: slot, dots: dots, barEl: bar, numEl: num });
     }
-    setTimeout(() => { dots.forEach(d => d.classList.remove("lit")); }, dur * beatMs + 150);
+    bar.appendChild(body);
+
+    const label = document.createElement("div");
+    label.className = "bar-label";
+    label.textContent = spec.label;
+    bar.appendChild(label);
+    els.bars.appendChild(bar);
+  });
+
+  // ---------- filling a slot ----------
+  function beatMs() { return 60000 / Number(els.tempo.value); }
+
+  function lightDots(slot, ms) {
+    const ds = slot.dots.children;
+    for (let b = 0; b < ds.length; b++) {
+      (function (i) { dotTimers.push(setTimeout(() => ds[i].classList.add("lit"), i * ms)); })(b);
+    }
+    dotTimers.push(setTimeout(() => {
+      for (let b = 0; b < ds.length; b++) ds[b].classList.remove("lit");
+    }, ds.length * ms + 120));
   }
-  function highlightSocketUnder(clientX, clientY) {
-    clearSocketHighlights();
-    const el = document.elementFromPoint(clientX, clientY);
-    const socket = el && el.closest(".dur-socket");
-    if (socket) socket.classList.add("dragover");
-  }
-  function clearSocketHighlights() {
-    document.querySelectorAll(".dur-socket.dragover").forEach(s => s.classList.remove("dragover"));
+  function clearDots() {
+    dotTimers.forEach(clearTimeout); dotTimers = [];
+    els.bars.querySelectorAll(".d.lit").forEach(d => d.classList.remove("lit"));
   }
 
-  let activeChipDrag = null;
-  function wireCastChipDrag(chipEl, key) {
-    let dragging = false, startX = 0, startY = 0;
-    chipEl.addEventListener("pointerdown", (e) => {
+  function fillSlot(slot, key) {
+    slot.key = key;
+    slot.el.classList.add("filled");
+    slot.el.style.setProperty("--ring", ringVar(key));
+    slot.el.innerHTML = '<span class="slot-av"><img src="' + IMG_SRC[key] + '" alt=""></span>' +
+                        '<button class="rm" aria-label="הסר">×</button>';
+    slot.el.querySelector(".rm").addEventListener("click", e => {
+      e.stopPropagation();
+      emptySlot(slot);
+    });
+    // sound first, drawing second - a note the child is waiting to hear has no business
+    // depending on anything rendering successfully
+    playSustainedNote(noteFreq(key), 0.85, (slot.dur * beatMs()) / 1000);
+    lightDots(slot, beatMs());
+  }
+
+  function emptySlot(slot) {
+    slot.key = null;
+    slot.el.classList.remove("filled", "playing");
+    slot.el.style.removeProperty("--ring");
+    slot.el.innerHTML = "";
+  }
+
+  // ---------- the magnet: aim roughly, land properly ----------
+  function slotUnder(x, y) {
+    const direct = document.elementFromPoint(x, y);
+    const hit = direct && direct.closest && direct.closest(".slot");
+    if (hit) { const s = slots.find(s => s.el === hit); if (s) return s; }
+    let best = null, bestD = Infinity;
+    slots.forEach(s => {
+      const r = s.el.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const d = Math.hypot(x - cx, y - cy);
+      // generous, and scaled to the slot: a small quarter circle still catches from far enough
+      const reach = r.width / 2 + 46;
+      if (d < reach && d < bestD) { bestD = d; best = s; }
+    });
+    return best;
+  }
+  function armSlotNear(x, y) {
+    const s = slotUnder(x, y);
+    slots.forEach(o => o.el.classList.toggle("armed", o === s));
+    return s;
+  }
+  function disarm() { slots.forEach(s => s.el.classList.remove("armed")); }
+
+  // ---------- dragging a character down ----------
+  let ghostEl = null, activeDrag = null;
+  function wireChipDrag(chip, key) {
+    let startX = 0, startY = 0, dragging = false;
+    chip.addEventListener("pointerdown", e => {
       if (playing) return;
-      unlockAudio(); // a whole drag of head start for the audio context to wake up
-      if (activeChipDrag) activeChipDrag();
+      if (activeDrag) activeDrag();
+      unlockAudio(); // a whole drag of head start for the audio context to wake
       startX = e.clientX; startY = e.clientY; dragging = false;
-      chipEl.setPointerCapture(e.pointerId);
+      chip.classList.add("lifted");
+      try { chip.setPointerCapture(e.pointerId); } catch (err) {}
 
       function onMove(ev) {
         const dx = ev.clientX - startX, dy = ev.clientY - startY;
@@ -1172,414 +683,114 @@
           dragging = true;
           ghostEl = document.createElement("div");
           ghostEl.className = "drag-ghost";
-          ghostEl.style.width = "70px"; ghostEl.style.height = "70px";
-          ghostEl.innerHTML = '<img src="' + IMG_SRC[key] + '">';
+          ghostEl.innerHTML = '<img src="' + IMG_SRC[key] + '" alt="">';
           document.body.appendChild(ghostEl);
         }
-        if (dragging && ghostEl) {
-          ghostEl.style.left = (ev.clientX - 35) + "px";
-          ghostEl.style.top = (ev.clientY - 35) + "px";
-          highlightSocketUnder(ev.clientX, ev.clientY);
+        if (dragging) {
+          ev.preventDefault();
+          ghostEl.style.left = (ev.clientX - 32) + "px";
+          ghostEl.style.top = (ev.clientY - 32) + "px";
+          armSlotNear(ev.clientX, ev.clientY);
         }
       }
       function cleanup() {
         document.removeEventListener("pointermove", onMove);
         document.removeEventListener("pointerup", onUp);
-        document.removeEventListener("pointercancel", onCancel);
-        clearSocketHighlights();
+        document.removeEventListener("pointercancel", cleanup);
+        chip.classList.remove("lifted");
+        disarm();
         if (ghostEl) { ghostEl.remove(); ghostEl = null; }
-        activeChipDrag = null;
+        activeDrag = null;
       }
       function onUp(ev) {
+        const wasDragging = dragging;
+        const x = ev.clientX, y = ev.clientY;
         cleanup();
-        if (dragging) {
-          const el = document.elementFromPoint(ev.clientX, ev.clientY);
-          const socket = el && el.closest(".dur-socket");
-          if (socket) {
-            const dur = Number(socket.dataset.dur);
-            workbench[dur] = key;
-            // sound first: it used to sit behind renderSockets, so anything that threw while
-            // drawing the nests swallowed the note the child was waiting to hear
-            playBeatCount(key, dur);
-            renderSockets();
-          } else if (els.road.contains(el)) {
-            // dropped straight on the staff, skipping the "choose a length" nest step —
-            // give a clear "not yet" cue instead of silently doing nothing
-            els.road.classList.remove("needs-duration");
-            void els.road.offsetWidth;
-            els.road.classList.add("needs-duration");
-          }
+        if (wasDragging) {
+          const s = slotUnder(x, y);
+          if (s) fillSlot(s, key);
         } else {
-          bounceEl(chipEl);
+          // a tap on a character just introduces it
           unlockAudio();
           playPianoNote(noteFreq(key), 0.9, 0.6);
         }
       }
-      function onCancel() { cleanup(); }
-      activeChipDrag = cleanup;
-      document.addEventListener("pointermove", onMove);
+      activeDrag = cleanup;
+      document.addEventListener("pointermove", onMove, { passive: false });
       document.addEventListener("pointerup", onUp);
-      document.addEventListener("pointercancel", onCancel);
+      document.addEventListener("pointercancel", cleanup);
     });
   }
-
-  // ---------- step 2: drag the ready note out of its nest and onto the staff ----------
-  let activeSocketDrag = null;
-  function wireSocketDrag(socketEl, dur) {
-    let dragging = false, startX = 0, startY = 0;
-    socketEl.addEventListener("pointerdown", (e) => {
-      if (playing || !workbench[dur]) return;
-      unlockAudio();
-      if (activeSocketDrag) activeSocketDrag();
-      const key = workbench[dur];
-      startX = e.clientX; startY = e.clientY; dragging = false;
-      socketEl.setPointerCapture(e.pointerId);
-
-      function onMove(ev) {
-        const dx = ev.clientX - startX, dy = ev.clientY - startY;
-        if (!dragging && Math.hypot(dx, dy) > 8) {
-          dragging = true;
-          const gsize = noteSizeFor(dur);
-          ghostEl = document.createElement("div");
-          ghostEl.className = "drag-ghost";
-          ghostEl.style.width = gsize + "px"; ghostEl.style.height = gsize + "px";
-          ghostEl.innerHTML = '<img src="' + IMG_SRC[key] + '">';
-          document.body.appendChild(ghostEl);
-        }
-        if (dragging && ghostEl) {
-          const half = noteSizeFor(dur) / 2;
-          ghostEl.style.left = (ev.clientX - half) + "px";
-          ghostEl.style.top = (ev.clientY - half) + "px";
-          edgeAutoScroll(ev.clientX);
-          highlightMeasureUnder(ev.clientX, ev.clientY);
-          highlightSocketUnder(ev.clientX, ev.clientY);
-        }
-      }
-      function cleanup() {
-        document.removeEventListener("pointermove", onMove);
-        document.removeEventListener("pointerup", onUp);
-        document.removeEventListener("pointercancel", onCancel);
-        clearMeasureHighlights();
-        clearSocketHighlights();
-        if (ghostEl) { ghostEl.remove(); ghostEl = null; }
-        activeSocketDrag = null;
-      }
-      function onUp(ev) {
-        cleanup();
-        if (dragging) {
-          const el = document.elementFromPoint(ev.clientX, ev.clientY);
-          const overRoad = els.road.contains(el);
-          const targetSocket = el && el.closest(".dur-socket");
-          if (overRoad) {
-            const rect = els.roadInner.getBoundingClientRect();
-            const targetMeasure = measureIndexAtX(ev.clientX - rect.left);
-            insertNear(targetMeasure, { type: "note", key: key, dur: dur });
-            workbench[dur] = null;
-            renderSockets();
-            unlockAudio();
-            playPianoNote(noteFreq(key), 0.9, 0.6);
-          } else if (targetSocket && targetSocket !== socketEl) {
-            // dragged onto a different-length nest — move the character there instead
-            const targetDur = Number(targetSocket.dataset.dur);
-            workbench[dur] = null;
-            workbench[targetDur] = key;
-            renderSockets();
-            playBeatCount(key, targetDur);
-          } else if (!targetSocket) {
-            // dragged away and released somewhere with no target — treat as "changed my
-            // mind", same as dragging a placed note off the staff removes it
-            workbench[dur] = null;
-            renderSockets();
-          }
-        } else {
-          playBeatCount(key, dur);
-        }
-      }
-      function onCancel() { cleanup(); }
-      activeSocketDrag = cleanup;
-      document.addEventListener("pointermove", onMove);
-      document.addEventListener("pointerup", onUp);
-      document.addEventListener("pointercancel", onCancel);
-    });
-  }
-
-  function edgeAutoScroll(clientX) {
-    if (!els.roadWrap) return;
-    const wrapRect = els.roadWrap.getBoundingClientRect();
-    if (clientX > wrapRect.right - 50) els.roadWrap.scrollLeft += 18;
-    else if (clientX < wrapRect.left + 50) els.roadWrap.scrollLeft -= 18;
-  }
-  function highlightMeasureUnder(clientX, clientY) {
-    clearMeasureHighlights();
-    const overRoad = els.road.contains(document.elementFromPoint(clientX, clientY));
-    if (!overRoad) return;
-    const rect = els.roadInner.getBoundingClientRect();
-    const mIdx = measureIndexAtX(clientX - rect.left);
-    const zone = els.roadInner.querySelector('.measure-zone[data-measure-index="' + mIdx + '"]');
-    if (zone) zone.classList.add("dragover");
-  }
-  function clearMeasureHighlights() {
-    els.roadInner.querySelectorAll(".measure-zone.dragover").forEach(z => z.classList.remove("dragover"));
-  }
-
-  // ---------- every page load starts blank on purpose — see the save slots below for the one
-  // intentional way to bring a melody back ----------
-  function sanitizeMeasures(raw) {
-    const cleaned = raw.map(m => (Array.isArray(m) ? m : []).filter(it =>
-      it && it.type === "note" && [1, 2, 4].includes(it.dur) && NOTES[it.key]
-    ).map(it => ({ type: "note", key: it.key, dur: it.dur })));
-    return cleaned.length ? repackMeasures(cleaned) : [[], []];
-  }
-
-  // A melody coming back from a slot has to obey the same rules as one built by hand - four
-  // beats to a box, boxes in order, no holes - and the stored shape guaranteed none of them.
-  // A slot written before those rules existed loaded straight back in, which is how a box
-  // ended up holding eight notes. Take the notes in order and lay them out again.
-  function repackMeasures(cleaned) {
-    const flat = [];
-    cleaned.forEach(m => m.forEach(it => flat.push(it)));
-    const out = [[]];
-    flat.forEach(it => {
-      let box = out[out.length - 1];
-      if (remaining(box) < it.dur) { out.push([]); box = out[out.length - 1]; }
-      box.push(it);
-    });
-    return out;
-  }
-
-  function updateTempoLabel() { els.tempoVal.textContent = els.tempo.value; }
-  els.tempo.addEventListener("input", updateTempoLabel);
-
-  els.volume.addEventListener("input", () => {
-    els.volumeVal.textContent = els.volume.value + "%";
-    if (masterVolumeGain) masterVolumeGain.gain.value = Number(els.volume.value) / 100;
-  });
-
-  els.btnUndo.addEventListener("click", () => { stopPlayback(); undo(); });
-  els.btnClear.addEventListener("click", () => { stopPlayback(); clearAll(); });
-
-  // Three named save slots on this device (localStorage) instead of a file or a text code to
-  // copy/paste — nothing for a child to type or handle, just tap a circle. This only remembers
-  // melodies on THIS browser/device (not across devices), and needs no special capability, so
-  // the page stays publicly shareable. Runs entirely through an in-page panel, not
-  // prompt()/alert() — both are commonly blocked inside the sandboxed frame an Artifact runs in.
-  const SLOT_COUNT = 3;
-  function slotKey(i) { return "sol_melody_part2_slot_" + i; }
-  function readSlot(i) {
-    try {
-      const raw = localStorage.getItem(slotKey(i));
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
-  }
-  function writeSlot(i, data) {
-    try { localStorage.setItem(slotKey(i), JSON.stringify(data)); } catch (e) {}
-  }
-
-  function closeSaveModal() { els.saveModal.style.display = "none"; }
-  els.saveModalCancel.addEventListener("click", closeSaveModal);
-  els.saveModal.addEventListener("click", (e) => { if (e.target === els.saveModal) closeSaveModal(); });
-
-  function renderSlotButtons(mode) {
-    els.saveModalSlots.innerHTML = "";
-    for (let i = 1; i <= SLOT_COUNT; i++) {
-      const data = readSlot(i);
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "slot-btn" + (data ? " filled" : "");
-      btn.textContent = i;
-      if (mode === "load" && !data) {
-        btn.disabled = true;
-      } else {
-        btn.addEventListener("click", () => {
-          if (mode === "save") {
-            writeSlot(i, { measures, bpm: Number(els.tempo.value) });
-          } else {
-            measures = sanitizeMeasures(data.measures || []);
-            tidyMeasures();
-            if (data.bpm) { els.tempo.value = data.bpm; updateTempoLabel(); }
-            stopPlayback();
-            renderRoad();
-          }
-          closeSaveModal();
-        });
-      }
-      els.saveModalSlots.appendChild(btn);
-    }
-  }
-
-  function openSlotModal(title, hint, mode) {
-    els.saveModalTitle.textContent = title;
-    els.saveModalHint.textContent = hint;
-    if (mode) renderSlotButtons(mode); else els.saveModalSlots.innerHTML = "";
-    els.saveModal.style.display = "flex";
-  }
-
-  els.btnExport.addEventListener("click", () => {
-    if (!measures.some(m => m.length)) {
-      openSlotModal("עדיין אין מה לשמור", "הוסיפו כמה תווים לחמשה קודם.", null);
-      return;
-    }
-    openSlotModal("שמרו את המנגינה", "בחרו לאיזה עיגול לשמור. עיגול מלא כבר מחזיק מנגינה — שמירה עליו תחליף אותה.", "save");
-  });
-
-  els.btnImport.addEventListener("click", () => {
-    const anySaved = [1, 2, 3].some(i => readSlot(i));
-    if (!anySaved) {
-      openSlotModal("אין עדיין מנגינות שמורות", 'שמרו מנגינה קודם עם הכפתור "שמרו מנגינה", ואז תוכלו לטעון אותה כאן.', null);
-      return;
-    }
-    openSlotModal("טענו מנגינה שמורה", "בחרו איזו מנגינה שמורה להביא בחזרה.", "load");
-  });
 
   // ---------- playback ----------
-  function flattenSequence() {
-    const out = [];
-    measures.forEach((m, mIdx) => {
-      let beatCursor = 0;
-      m.forEach(item => {
-        const cx = measureXStart(mIdx) + (beatCursor + item.dur / 2) * PX_PER_BEAT;
-        out.push({ item, x: cx, mIdx: mIdx, beatStart: beatCursor });
-        beatCursor += item.dur;
-      });
-    });
-    return out;
-  }
-
-  // Reuse the measure's own quota dots for the "how long does this note last" cue during
-  // playback, instead of a separate floating row — the beats this note occupies are already
-  // sitting right there above its measure, dark because they're "used"; light them back up one
-  // at a time while the note sounds, then let them settle back to dark.
-  let playingDotTimers = [];
-  function lightMeasureDots(mIdx, beatStart, dur, beatMs) {
-    const rows = els.roadInner.querySelectorAll(".measure-quota");
-    const row = rows[mIdx];
-    if (!row) return;
-    const dots = row.children;
-    for (let b = 0; b < dur; b++) {
-      const dot = dots[beatStart + b];
-      if (!dot) continue;
-      playingDotTimers.push(setTimeout(() => dot.classList.add("lit"), b * beatMs));
-    }
-    playingDotTimers.push(setTimeout(() => {
-      for (let b = 0; b < dur; b++) {
-        const dot = dots[beatStart + b];
-        if (dot) dot.classList.remove("lit");
-      }
-    }, dur * beatMs + 100));
-  }
-  function clearPlayingDots() {
-    playingDotTimers.forEach(t => clearTimeout(t));
-    playingDotTimers = [];
-    els.roadInner.querySelectorAll(".measure-quota .beat-dot.lit").forEach(d => d.classList.remove("lit"));
-  }
-
-  // Instead of chasing each note (which slid the bar lines off screen mid-measure), hold one
-  // whole measure still and only move at the bar line - the move itself teaches where a
-  // measure ends. If the whole piece already fits on screen, never scroll at all.
-  let lastScrolledMeasure = -1;
-  function scrollToStart() {
-    if (!els.roadWrap) return;
-    const set = () => {
-      if (typeof els.roadWrap.scrollTo === "function") els.roadWrap.scrollTo({ left: 0, behavior: "auto" });
-      els.roadWrap.scrollLeft = 0;
-    };
-    set();
-    requestAnimationFrame(set);
-    [40, 90, 160, 260, 400].forEach(ms => setTimeout(set, ms));
-  }
-  function scrollToMeasure(mIdx, instant) {
-    if (!els.roadWrap) return;
-    const wrapW = els.roadWrap.clientWidth;
-    if (els.road.offsetWidth <= wrapW + 2) return;
-    const fitsFromStart = wrapW >= LEFT_GUTTER + MEASURE_W;
-    const left = (mIdx === 0 && fitsFromStart) ? 0 : Math.max(0, measureXStart(mIdx) - 12);
-    if (typeof els.roadWrap.scrollTo === "function") {
-      els.roadWrap.scrollTo({ left: left, behavior: instant ? "auto" : "smooth" });
-    } else {
-      els.roadWrap.scrollLeft = left;
-    }
-  }
-
-  function setPlayButton(isPlaying) {
-    els.btnPlay.classList.toggle("is-playing", isPlaying);
+  function setPlayButton(on) {
+    els.btnPlay.classList.toggle("is-playing", on);
     const label = els.btnPlay.querySelector(".btn-label");
-    if (label) label.textContent = isPlaying ? "עצור" : "נגן";
-    els.btnPlay.setAttribute("aria-label", isPlaying ? "עצור" : "נגן");
+    if (label) label.textContent = on ? "עצור" : "נגן";
+    els.btnPlay.setAttribute("aria-label", on ? "עצור" : "נגן");
   }
-
   function stopPlayback() {
     playing = false;
-    lastScrolledMeasure = -1;
-    els.roadInner.querySelectorAll(".measure-zone.now, .measure-num.now").forEach(z => z.classList.remove("now"));
     if (playTimer) clearTimeout(playTimer);
     playTimer = null;
-    els.playhead.style.transitionDuration = "0s";
-    els.playhead.style.opacity = "0";
-    clearPlayingDots();
-    els.roadInner.querySelectorAll(".playing").forEach(n => n.classList.remove("playing"));
+    clearDots();
+    els.bars.querySelectorAll(".playing").forEach(n => n.classList.remove("playing"));
+    els.bars.querySelectorAll(".bar.now, .bar-num.now").forEach(n => n.classList.remove("now"));
     setPlayButton(false);
   }
-
   function startPlayback() {
-    const seq = flattenSequence();
-    if (!seq.length || playing) return;
+    if (playing) return;
+    if (!slots.some(s => s.key)) return; // nothing to hear yet
     playing = true;
-    lastScrolledMeasure = -1;
-    // The melody always begins in box 1, so playback always begins the view there too -
-    // never wherever the child happened to have scrolled to. One assignment is not enough:
-    // a smooth scroll left over from the last drop keeps unwinding on iOS and drags the view
-    // back off, so the position is re-asserted over the next few frames until it sticks.
-    scrollToStart();
-    lastScrolledMeasure = 0; // box 1 is already on screen; do not scroll again for it
     setPlayButton(true);
-    els.playhead.style.opacity = "1";
     unlockAudio();
-    const bpm = Number(els.tempo.value);
-    const beatMs = 60000 / bpm;
+    const ms = beatMs();
 
-    function scheduleNext(i) {
-      if (i >= seq.length) { stopPlayback(); return; }
-      const entry = seq[i];
-      els.roadInner.querySelectorAll(".playing").forEach(n => n.classList.remove("playing"));
-      const targetNode = els.roadInner.querySelector('[data-seq="' + i + '"]');
-
-      els.playhead.style.transitionDuration = "0s";
-      els.playhead.style.left = entry.x + "px";
-      if (targetNode) targetNode.classList.add("playing");
-      // Mark which measure is sounding, and turn the "page" only at a bar line.
-      els.roadInner.querySelectorAll(".measure-zone.now, .measure-num.now").forEach(z => z.classList.remove("now"));
-      const zoneNow = els.roadInner.querySelector('.measure-zone[data-measure-index="' + entry.mIdx + '"]');
-      if (zoneNow) zoneNow.classList.add("now");
-      const numNow = els.roadInner.querySelector('.measure-num[data-measure-index="' + entry.mIdx + '"]');
-      if (numNow) numNow.classList.add("now");
-      if (entry.mIdx !== lastScrolledMeasure) {
-        lastScrolledMeasure = entry.mIdx;
-        scrollToMeasure(entry.mIdx, i === 0); // the first jump is instant, so nothing outruns it
+    function step(i) {
+      if (i >= slots.length) { stopPlayback(); return; }
+      const s = slots[i];
+      els.bars.querySelectorAll(".playing").forEach(n => n.classList.remove("playing"));
+      els.bars.querySelectorAll(".bar.now, .bar-num.now").forEach(n => n.classList.remove("now"));
+      s.barEl.classList.add("now");
+      s.numEl.classList.add("now");
+      s.el.classList.add("playing");
+      // an empty slot is not a failure, it is a rest - the child is never blocked mid-melody
+      if (s.key) {
+        playSustainedNote(noteFreq(s.key), 0.9, (s.dur * ms) / 1000);
+        lightDots(s, ms);
       }
-      const waitMs = entry.item.dur * beatMs;
-      if (entry.item.type === "note") {
-        playSustainedNote(noteFreq(entry.item.key), 0.9, waitMs / 1000);
-        lightMeasureDots(entry.mIdx, entry.beatStart, entry.item.dur, beatMs);
-      }
-      const next = seq[i + 1];
-      if (next) {
-        requestAnimationFrame(() => {
-          els.playhead.style.transitionDuration = (waitMs / 1000) + "s";
-          els.playhead.style.left = next.x + "px";
-        });
-      }
-      playTimer = setTimeout(() => scheduleNext(i + 1), waitMs);
+      playTimer = setTimeout(() => step(i + 1), s.dur * ms);
     }
-    scheduleNext(0);
+    step(0);
   }
-
   els.btnPlay.addEventListener("click", () => { if (playing) stopPlayback(); else startPlayback(); });
 
-  // a beat to let the screen settle and the child look at it before anything moves
-  setTimeout(() => runHintBurst(0), 1200);
+  // ---------- the grown-up drawer ----------
+  els.btnMore.addEventListener("click", () => {
+    const open = els.more.classList.toggle("open");
+    els.btnMore.textContent = open ? "סגור ⋯" : "עוד ⋯";
+  });
+  els.btnClear.addEventListener("click", () => { stopPlayback(); slots.forEach(emptySlot); });
+  els.tempo.addEventListener("input", () => { els.tempoVal.textContent = els.tempo.value; });
+  els.volume.addEventListener("input", () => {
+    els.volumeVal.textContent = els.volume.value + "%";
+    if (typeof masterVolumeGain !== "undefined" && masterVolumeGain) {
+      masterVolumeGain.gain.value = Number(els.volume.value) / 100;
+    }
+  });
 
-  updateTempoLabel();
-  renderStaffLines();
-  renderRoad();
+  // ---------- preview-only readout, ?debug=1 ----------
+  const DIAG = /[?&]debug=1/.test(location.search);
+  if (DIAG && els.diag) {
+    els.diag.hidden = false;
+    setInterval(() => {
+      const page = document.querySelector(".page");
+      els.diag.textContent =
+        "content " + page.offsetHeight + "px   window " + window.innerHeight + "px   " +
+        (page.offsetHeight <= window.innerHeight ? "FITS" : "OVERFLOWS by " + (page.offsetHeight - window.innerHeight)) + "\n" +
+        "filled " + slots.filter(s => s.key).length + "/" + slots.length + "   playing " + playing + "\n" +
+        "audio " + (audioCtx ? audioCtx.state : "not created");
+    }, 250);
+  }
 })();
 </script>
