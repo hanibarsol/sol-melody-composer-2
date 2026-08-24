@@ -302,6 +302,58 @@
     .sol-nav-btn { transition: none; }
     .sol-nav-btn:hover { transform: none; }
 }
+
+  /* ---------- Instruction video ---------- */
+  /* Hani showing what to do here, for a child who cannot read. Copied from part 1 so the two
+     halves of the same lesson behave identically.
+
+     Top right: the top left belongs to the home button everywhere on this platform. The icon is
+     a screen with a play triangle rather than a latin i — the children are four to eight and
+     most cannot read, and a play triangle is the one symbol they already know without being
+     taught.
+
+     The button hides itself until a film exists, so nobody presses something that answers with
+     nothing. */
+  .btn-info {
+    position: fixed; top: 12px; right: 12px; left: auto;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; cursor: pointer; z-index: 101;
+    background: #17A79B; border: none; color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(18, 48, 44, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-info[hidden] { display: none; }
+  .btn-info svg { width: 28px; height: 28px; }
+  .btn-info:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 8px 18px rgba(18, 48, 44, 0.45); }
+  .btn-info:active { transform: scale(.96); }
+  .btn-info:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+  @media (max-width: 640px) {
+    .btn-info { width: 44px; height: 44px; top: 8px; right: 8px; }
+    .btn-info svg { width: 24px; height: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-info { transition: none; }
+    .btn-info:hover { transform: none; }
+  }
+  .video-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15,12,25,.8); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .video-modal-backdrop.hidden { display: none; }
+  .video-modal-box {
+    position: relative; width: 100%; max-width: 720px; background: #000;
+    border-radius: 18px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .video-modal-box video { display: block; width: 100%; max-height: 80vh; background: #000; }
+  /* big and its own colour: a four-year-old has to be able to get out without help */
+  .video-modal-close {
+    position: absolute; top: 10px; left: 10px; width: 46px; height: 46px; border-radius: 50%;
+    border: none; background: rgba(255,255,255,.94); color: #241F3D; font-size: 20px; font-weight: 800;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;
+  }
+  .video-modal-close:active { transform: scale(.94); }
+  @media (max-width: 480px) { .video-modal-box { max-width: 100%; } }
 </style>
 <a class="sol-home-btn" href="https://portal.smoove.io/gsbmtbnbbf1yd87kbofd1/Category?category=qqb" target="_top" aria-label="חזרה למסך הבית">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -309,6 +361,21 @@
         <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
     </svg>
 </a>
+<button class="btn-info" id="btnInfo" type="button" title="סרטון הדרכה" aria-label="סרטון הדרכה" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+    <rect x="2.6" y="5" width="18.8" height="14" rx="3.4" />
+    <path d="M10 9.4l5 2.6-5 2.6z" fill="currentColor" stroke="none" />
+  </svg>
+</button>
+
+<div class="video-modal-backdrop hidden" id="videoModalBackdrop">
+  <div class="video-modal-box">
+    <button class="video-modal-close" id="videoModalClose" type="button" title="סגירה">✕</button>
+    <video id="introVideo" controls playsinline preload="none">
+      <source src="media/info-video.mp4" type="video/mp4">
+    </video>
+  </div>
+</div>
 <div class="sol-nav">
   <a class="sol-nav-btn sol-nav-next" href="https://portal.smoove.io/og7b11bd8ftf4p3nmbnb/ContentPage?category=qqb&module=bjiw&page=dobf" target="_top" aria-label="להמשך">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -948,5 +1015,47 @@
         "----\n" + (TRACE.length ? TRACE.join("\n") : "(no sound asked for yet)");
     }, 250);
   }
+})();
+</script>
+
+
+<script>
+/* The instruction video — its own closure, touching nothing in the lesson.
+
+   TO ADD THE FILM: put it at media/info-video.mp4 and the button appears by itself. Until then
+   it stays hidden, so a child is never offered something that answers with nothing.
+
+   Convert before adding — a phone recording is a 1080p .mov, which is Apple's container and
+   unreliable outside Safari, and far heavier than a child on cellular should wait for:
+     ffmpeg -i in.mov -vf scale=-2:720 -c:v libx264 -preset slow -crf 26 \
+            -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 96k out.mp4 */
+(function () {
+  var btn = document.getElementById("btnInfo");
+  var veil = document.getElementById("videoModalBackdrop");
+  var film = document.getElementById("introVideo");
+  var shut = document.getElementById("videoModalClose");
+  if (!btn || !veil || !film || !shut) return;
+
+  /* Show the button only once the film is really there. */
+  fetch("media/info-video.mp4", { method: "HEAD" })
+    .then(function (r) { if (r.ok) btn.hidden = false; })
+    .catch(function () {});
+
+  function close() {
+    veil.classList.add("hidden");
+    film.pause();
+  }
+  btn.addEventListener("click", function () {
+    veil.classList.remove("hidden");
+    film.currentTime = 0;
+    var started = film.play();
+    if (started && started.catch) started.catch(function () {});
+  });
+  shut.addEventListener("click", close);
+  veil.addEventListener("click", function (e) { if (e.target === veil) close(); });
+  film.addEventListener("ended", close);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !veil.classList.contains("hidden")) close();
+  });
 })();
 </script>
