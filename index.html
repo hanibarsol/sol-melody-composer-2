@@ -318,7 +318,13 @@
     position: fixed; top: 12px; right: 12px; left: auto;
     width: 52px; height: 52px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    padding: 0; cursor: pointer; z-index: 101;
+    padding: 0; cursor: pointer;
+    /* Above the opening screen (z-index 200), not below it.
+
+       The film explains what to do here, so the moment a child most needs it is BEFORE they
+       start — and the opening screen was covering the button exactly then. The video window
+       itself sits higher again, so pressing this always opens on top of everything. */
+    z-index: 260;
     background: #17A79B; border: none; color: #FFFFFF;
     box-shadow: 0 4px 14px rgba(18, 48, 44, 0.35);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -337,7 +343,7 @@
     .btn-info:hover { transform: none; }
   }
   .video-modal-backdrop {
-    position: fixed; inset: 0; background: rgba(15,12,25,.8); z-index: 200;
+    position: fixed; inset: 0; background: rgba(15,12,25,.8); z-index: 300;
     display: flex; align-items: center; justify-content: center; padding: 16px;
   }
   .video-modal-backdrop.hidden { display: none; }
